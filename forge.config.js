@@ -46,18 +46,22 @@ module.exports = {
             },
           ],
         },
+        // Configuração para debug
+        devContentSecurityPolicy: "default-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-eval' 'unsafe-inline' data:",
+        // Habilitar source maps em desenvolvimento
+        devSourceMap: true,
       },
     },
     // Fuses are used to enable/disable various Electron functionality
     // at package time, before code signing the application
     new FusesPlugin({
       version: FuseVersion.V1,
-      [FuseV1Options.RunAsNode]: false,
+      [FuseV1Options.RunAsNode]: true, // Habilitado para debug
       [FuseV1Options.EnableCookieEncryption]: true,
-      [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
-      [FuseV1Options.EnableNodeCliInspectArguments]: false,
+      [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: true, // Habilitado para debug
+      [FuseV1Options.EnableNodeCliInspectArguments]: true, // Habilitado para debug
       [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
-      [FuseV1Options.OnlyLoadAppFromAsar]: true,
+      [FuseV1Options.OnlyLoadAppFromAsar]: false, // Desabilitado para debug
     }),
   ],
 };

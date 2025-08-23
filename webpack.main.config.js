@@ -16,4 +16,7 @@ module.exports = {
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  // Habilitar source maps para debug
+  devtool: 'source-map',
+  mode: 'development',
 };

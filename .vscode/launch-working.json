@@ -1,0 +1,64 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Electron: Start and Debug",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/main.js",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "preLaunchTask": "Start Electron"
+    },
+    {
+      "name": "Debug Watcher.js",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/background/watcher.js",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true
+    }
+  ],
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Start Electron",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "start"],
+        "group": "build",
+        "isBackground": true,
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": {
+          "pattern": {
+            "regexp": ".",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "Starting inspector",
+            "endsPattern": "Launched Electron app"
+          }
+        }
+      }
+    ]
+  }
+}

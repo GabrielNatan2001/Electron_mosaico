@@ -70,6 +70,9 @@ rules.push(
 );
 
 module.exports = {
+  // Habilitar source maps para debug
+  devtool: 'source-map',
+  mode: 'development',
   module: {
     rules,
   },

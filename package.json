@@ -6,6 +6,9 @@
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
+    "start:debug": "cross-env NODE_OPTIONS=\"--inspect=5858\" electron-forge start",
+    "start:debug-brk": "cross-env NODE_OPTIONS=\"--inspect-brk=5858\" electron-forge start",
+    "start:debug-watcher": "cross-env NODE_OPTIONS=\"--inspect=5859\" node test-watcher.js",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
@@ -36,6 +39,7 @@
     "autoprefixer": "^10.4.21",
     "babel-loader": "^10.0.0",
     "copy-webpack-plugin": "^13.0.1",
+    "cross-env": "^10.0.0",
     "css-loader": "^6.11.0",
     "dotenv": "^17.2.1",
     "electron": "37.3.1",

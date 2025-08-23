@@ -41,6 +41,9 @@ function getWatchDirectory() {
  * @returns {Promise<import('chokidar').FSWatcher>}
  */
 async function startWatcher(options = {}) {
+  // Forçar pausa para debug
+  debugger;
+  
   console.log('[WATCHER] startWatcher chamado com opções:', options);
 
   // Define a pasta MosaicoElectron baseada no sistema operacional
