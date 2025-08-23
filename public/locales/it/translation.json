@@ -1,0 +1,548 @@
+{
+  "title": "Identificazione Utente",
+  "email": {
+    "placeholder": "La tua e-mail",
+    "label": "E-mail"
+  },
+  "username": {
+    "placeholder": "Il tuo nome utente",
+    "label": "Nome utente"
+  },
+  "password": {
+    "label": "Password",
+    "confirmPassword": "Conferma password",
+    "passwordsMustBeTheSame": "Le password devono coincidere.",
+    "successDescription": "La tua password è stata modificata con successo.",
+    "strongPasswordValidation": "La password deve contenere almeno 6 caratteri, inclusi maiuscole, minuscole, numeri e simboli."
+  },
+  "button": {
+    "primary": {
+      "normal": "Accedi",
+      "loading": "Caricamento…",
+      "register": "Registra account"
+    }
+  },
+  "mosaico": "Mosaico",
+  "appVersion": "Versione (3.0 - BETA)",
+  "forgotPassword": "Hai dimenticato la password?",
+  "register": {
+    "emailSent": "Abbiamo inviato un link di conferma alla tua email",
+    "accountActivated": "Il tuo account è stato attivato con successo!",
+    "readyToUse": "Sei già abilitato ad accedere al Mosaico TLM Manager",
+    "backToLogin": "Torna al login",
+    "name": "Nome",
+    "link": "Registrati",
+    "title": "Scegli il tipo di registrazione",
+    "personal": "Personale",
+    "business": "Aziendale",
+    "personalDesc": "Account per uso individuale.",
+    "businessDesc": "Account aziendale con gestione avanzata e utenti multipli.",
+    "back": "Torna al login",
+    "confirmPassword": "Conferma password"
+  },
+  "login": {
+    "invalid": "Credenziali non valide",
+    "selectMosaic": "Seleziona un mosaico",
+    "loginSuccessful": "Accesso effettuato con successo!",
+    "emailRequired": "L'email è obbligatoria",
+    "emailNotValid": "Email non valida",
+    "passwordRequired": "La password è obbligatoria",
+    "passwordShort": "La password è troppo corta",
+    "nameRequired": "Il nome è obbligatorio"
+  },
+  "recover": {
+    "title": "Recupera password",
+    "description": "Inserisci la tua e-mail e ti invieremo le istruzioni per reimpostare la password.",
+    "button": "Invia",
+    "back": "Torna al login",
+    "error": "Errore nell'invio dell'e-mail di recupero.",
+    "successTitle": "Controlla la tua e-mail!",
+    "successDescription": "Ti abbiamo inviato un'e-mail con le istruzioni per reimpostare la password. Controlla la tua casella di posta."
+  },
+  "version": "Versione ({{s}})",
+  "footer": {
+    "copyright": "© {{year}} Mosaico. Tutti i diritti riservati.",
+    "landingText": "Accedi alla nostra landing page:",
+    "landingLink": "clicca qui"
+  },
+  "languages": {
+    "pt-BR": "Portoghese (Brasile)",
+    "en": "Inglese",
+    "es": "Spagnolo",
+    "de": "Tedesco",
+    "it": "Italiano",
+    "fr": "Francese",
+    "ru": "Russo",
+    "zh": "Cinese"
+  },
+  "reset": {
+    "title": "Nuova password",
+    "description": "Inserisci una nuova password per accedere nuovamente",
+    "placeholder": "Inserisci una password sicura",
+    "button": "Cambia password",
+    "back": "Torna al login",
+    "loading": "Invio in corso...",
+    "successTitle": "Complimenti!",
+    "successDescription": "La tua password è stata modificata con successo.",
+    "loginButton": "Accedi",
+    "invalidTitle": "Pagina non disponibile",
+    "invalidDescription": "Il link per il reset non è valido o è scaduto."
+  },
+  "dashboard": {
+    "welcome": "Benvenuto {{name}}",
+    "currentPlan": "Piano attuale: {{plan}}",
+    "newMosaic": "Nuovo Mosaico",
+    "logout": "DISCONNETTI",
+    "inviteUser": "Invita Utente",
+    "yourMosaics": "I tuoi Mosaici",
+    "lastUpdate": "Ultimo aggiornamento: 05/05/2025",
+    "updates": "Ultimi aggiornamenti:",
+    "plans": "Piani disponibili per te:",
+    "plan": "Piano",
+    "controlPanel": "Pannello di Controllo",
+    "quit": "Esci",
+    "adminSuccess": "Benvenuto",
+    "dataUltimaAtualizacao": "Ultimo aggiornamento",
+    "newPlan": "Nuovo Piano",
+    "viewPlans": "Visualizza Piani",
+    "availablePlans": "Piani Disponibili",
+    "noPlansAvailable": "Nessun piano disponibile.",
+    "allowedUsers": "Utenti autorizzati",
+    "allowedMosaics": "Mosaici autorizzati",
+    "price": "Prezzo",
+    "deletePlan": "Elimina piano {{plan}}",
+    "noPlan": "Gratuito",
+    "qtdTesselasPorMosaico": "Numero di Tessere per Mosaico",
+    "selectAllMosaics": "Seleziona tutti"
+  },
+  "businessRegister": {
+    "title": "Registrazione Aziendale",
+    "cnpj": "CNPJ",
+    "fantasyName": "Nome Fantasia",
+    "corporateName": "Ragione Sociale",
+    "ownerEmail": "Email del Proprietario",
+    "password": "Una password sicura",
+    "confirmPassword": "Conferma Password",
+    "plan": "Piano",
+    "back": "Indietro",
+    "next": "Avanti",
+    "button": "Registrati"
+  },
+  "personalRegister": {
+    "title": "Registrazione Personale",
+    "name": "Nome completo",
+    "email": "La tua email",
+    "password": "Una password sicura",
+    "confirmPassword": "Conferma password",
+    "selectPlan": {
+      "placeholder": "Seleziona un piano",
+      "plan1": "Piano 1",
+      "plan2": "Piano 2",
+      "plan3": "Piano 3"
+    },
+    "button": {
+      "register": "Crea account"
+    },
+    "back": "Torna al login"
+  },
+  "toolbarMaintenance": {
+    "title": "Modalità Manutenzione",
+    "wallpaper": "Sfondo",
+    "iconFormat": "Formato Icona",
+    "users": "Utenti",
+    "settings": "Impostazioni",
+    "controlPanel": "Pannello di Controllo",
+    "BuscarTessela": "Cercare Tessela",
+    "tessela": {
+      "title": "Tessera",
+      "move": "Sposta Tessela",
+      "lock": "Blocca Tessela",
+      "create": "Crea Tessela"
+    },
+    "wallpaperModal": {
+      "title": "Personalizza Sfondo",
+      "description": "Scegli un colore o un'immagine per lo sfondo",
+      "color": "Colore di sfondo",
+      "image": "Immagine di sfondo",
+      "textImage": "Seleziona immagine",
+      "save": "Salva sfondo",
+      "remove": "Rimuovi immagine"
+    },
+    "dialog": {
+      "buscarTessela": {
+        "title": "Cerca Tessela",
+        "description": "Ricerca delle tessere disponibili"
+      },
+      "icones": {
+        "title": "Icone",
+        "description": "Seleziona icona"
+      },
+      "criarTessela": {
+        "title": "Crea Tessela",
+        "description": "Modulo per creare tessera"
+      },
+      "detalhesTessela": {
+        "title": "Dettagli Tessela",
+        "description": "Informazioni e azioni disponibili"
+      }
+    }
+  },
+  "toolbarOpen": {
+    "mosaico": {
+      "organization": "Organizza Tesselas",
+      "title": "Mosaico",
+      "contact": "Contattaci",
+      "contactDescription": "Invia un messaggio al nostro team di supporto"
+    },
+    "language": {
+      "title": "Seleziona Lingua"
+    },
+    "zoom": "Zoom",
+    "logout": "Disconnetti"
+  },
+  "tesselaModal": {
+    "downloadFile": "Scarica contenuto",
+    "arquivo": "File",
+    "multiplosConteudos": "Contenuti multipli",
+    "deletarConteudo": "Elimina contenuto",
+    "voltarParaPastas": "Indietro",
+    "title": "Nuova Tessera",
+    "subtitle": "Inserisci i dettagli della tessera",
+    "generalIcons": "Icone generali",
+    "exclusiveIcons": "Icone esclusive",
+    "name": "Titolo",
+    "description": "Descrizione",
+    "resume": "Riassunto",
+    "type": "Tipo di contenuto",
+    "text": "Testo",
+    "image": "Immagine (file .jpg, .png...)",
+    "video": "Video (file .mp4)",
+    "pdf": "PDF",
+    "office": "File Office (Word, Excel, PowerPoint)",
+    "link": "Link (YouTube, sito, ecc.)",
+    "content": "Inserisci il contenuto",
+    "linkPlaceholder": "Inserisci il {{tipo}}",
+    "create": "Crea",
+    "requiredFields": "Compila i campi obbligatori",
+    "requiredIcon": "Seleziona un'icona",
+    "requiredContent": "Inserisci un valore",
+    "addContentTessela": "Nuovo contenuto",
+    "descriptionAddContentTessela": "Aggiungi il contenuto",
+    "noFileSelected": "Nessun file selezionato",
+    "confirmDeleteTitle": "Elimina Tessera",
+    "confirmDeleteMessage": "Sei sicuro di voler eliminare la tessera?",
+    "save": "Salva",
+    "changeTesseraIcon": "Cambia icona tessera",
+    "selectIconToUpdate": "Seleziona un'icona da salvare",
+    "requiredIconAndDescription": "Inserisci titolo e descrizione.",
+    "alterDateTessela": "Modifica tessera",
+    "alterDateTesselaDescription": "Inserisci i campi per aggiornare i dati",
+    "deleteTessela": "Cancella tessera",
+    "alterarDadosTessela": "Modifica Dati Tessera",
+    "usarCorUnica": "Usa colore unico",
+    "usarGradiente": "Usa gradiente",
+    "descriptionRequired": "La descrizione è obbligatoria",
+    "mosaicName": "Nome del Mosaico",
+    "mosaicNameRequired": "Il nome del mosaico è obbligatorio",
+    "multiple": "Contenuti multipli",
+    "semConteudos": "Tessela senza contenuto",
+    "loading": "Caricamento dei file"
+  },
+  "iconModal": {
+    "title": "Gestisci Icone",
+    "general": "Icone Generali",
+    "custom": "Icone Esclusive",
+    "namePlaceholder": "Nome (max 12 caratteri)",
+    "chooseFile": "Scegli file",
+    "noFile": "Nessun file selezionato",
+    "add": "Aggiungi Icona",
+    "fillName": "Compila il nome dell'icona",
+    "success": "Icona aggiunta con successo",
+    "addContentTessela": "Aggiungi contenuto"
+  },
+  "invite": {
+    "title": "Invita Utente",
+    "name": "Nome",
+    "email": "Email",
+    "role": "Ruolo",
+    "selectRole": "Seleziona il ruolo",
+    "roles": {
+      "diretor": "Progettazione",
+      "colaborador": "Operatore"
+    },
+    "error403": "Non hai il permesso per invitare utenti.",
+    "mosaics": "Mosaici assegnati",
+    "send": "Invia Invito"
+  },
+  "common": {
+    "edit": "Modifica",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "confirm": "Conferma",
+    "invalidContent": "Contenuto non valido o non supportato"
+  },
+  "users": {
+    "title": "Utenti",
+    "editTitle": "Modifica Utente",
+    "form": {
+      "name": "Nome",
+      "role": "Ruolo",
+      "save": "Salva"
+    },
+    "status": {
+      "active": "Attivo",
+      "blocked": "Bloccato"
+    },
+    "roles": {
+      "admin": "Admin",
+      "operador": "Operatore",
+      "design": "Design"
+    },
+    "nameUpdated": "Nome aggiornato!"
+  },
+  "contact": {
+    "title": "Contattaci",
+    "tyype": "Tipo",
+    "type": {
+      "duvida": "Domanda",
+      "sugestao": "Suggerimento",
+      "bug": "Segnala Bug"
+    },
+    "message": "Messaggio",
+    "message.placeholder": "Descrivi il tuo messaggio qui...",
+    "message.hint": "Evita di includere dati sensibili.",
+    "button": "Invia Messaggio",
+    "errorOnLogin": "Errore durante l'accesso",
+    "loginSuccessful": "Accesso effettuato con successo!",
+    "selectAMosaic": "Seleziona un mosaico",
+    "mensageInfo": "Questa è una versione demo, se vuoi saperne di più",
+    "talkToUs": "contattaci",
+    "searchLanguages": "Cerca lingua",
+    "searchLanguagesPlaceholder": "Scrivi la tua lingua..."
+  },
+  "settingsModal": {
+    "title": "Impostazioni Account",
+    "editInfoWarning": "Puoi modificare il nome cliccando sull'icona della matita. Le modifiche all'email possono essere effettuate solo tramite supporto per motivi di sicurezza.",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "namePlaceholder": "Il tuo nome",
+    "emailPlaceholder": "La tua email",
+    "passwordLabel": "Nuova password",
+    "confirmPassword": "Conferma nuova password",
+    "passwordsMustBeTheSame": "Le password devono coincidere",
+    "passwordSuccess": "Password aggiornata con successo",
+    "nameUpdated": "Nome aggiornato con successo",
+    "changePassword": "Cambia Password"
+  },
+  "usuariosVinculadosModal": {
+    "abrir": "Vedi utenti collegati",
+    "titulo": "Utenti Collegati",
+    "buscarPlaceholder": "Inserisci un nome per cercare",
+    "buscar": "Cerca",
+    "limpar": "Pulisci",
+    "nenhumEncontrado": "Nessun utente trovato.",
+    "desvinculadoSucesso": "Utente scollegato con successo",
+    "acessoNegado": "Accesso negato"
+  },
+  "planos": {
+    "popular": "Popolare",
+    "economia": "Risparmia il con il piano annuale",
+    "mosaicos": "{{qtd}} mosaici",
+    "conteudos": "Fino a {{qtd}} contenuti per mosaico",
+    "botao": "Abbonati",
+    "mensal": "mese",
+    "anual": "anno"
+  },
+  "visualizarPlanos": {
+    "voltar": "Indietro",
+    "titulo": "Piani",
+    "ciclos": {
+      "anual": "Annuale",
+      "mensal": "Mensile"
+    },
+    "carregando": "Caricamento...",
+    "nenhumPlano": "Nessun piano disponibile."
+  },
+  "error": {
+    "payment": {
+      "title": "Errore nel pagamento",
+      "description": "Si è verificato un problema durante l'elaborazione del pagamento. Riprova più tardi o torna alla home.",
+      "button": "Torna all'inizio",
+      "alt": "Logo del sistema"
+    }
+  },
+  "success": {
+    "title": "Acquisto completato con successo!",
+    "message": "Congratulazioni! Il tuo abbonamento è stato attivato con successo. Benvenuto/a nella nostra community!",
+    "details": "Riceverai presto un'email di conferma con i dettagli del piano e i tuoi vantaggi.",
+    "notice": "Il tuo piano sarà aggiornato a breve. Se ci sono ritardi, effettua di nuovo l'accesso.",
+    "button": "Torna all'inizio"
+  },
+  "cancelarPlano": {
+    "botao": "Annulla piano",
+    "entrarEmContato": "Per annullare, contatta",
+    "dialogo": {
+      "titulo": "Sei sicuro?",
+      "etapas": {
+        "1": "Annullando perderai immediatamente l'accesso a tessere, mosaici e contenuti aggiuntivi. Questi dati potrebbero essere rimossi e non è garantito il recupero.",
+        "2": "Questa azione è definitiva e irreversibile. Potrai iscriverti di nuovo, ma perderai i contenuti esistenti."
+      },
+      "voltar": "Torna ai piani",
+      "continuar": "Continua",
+      "confirmar": "Annulla piano"
+    },
+    "toast": {
+      "sucesso": "Piano annullato con successo"
+    },
+    "planos": {
+      "planoAtual": "Piano attuale"
+    }
+  },
+  "toast": {
+    "organizar": {
+      "sucesso": "Tesselas organizzate e salvate con successo",
+      "error": "Nessuna tessela nel mosaico"
+    }
+  },
+  "notFoundPage": {
+    "erro": "Errore, è successo qualcosa di inaspettato.",
+    "paginaNaoDisponivel": "Questa pagina non è disponibile. Ci dispiace.",
+    "voltarInicio": "Torna alla home."
+  },
+  "language": {
+    "unavailableTitle": "Lingua non disponibile",
+    "unavailableMessage": "Spiacenti, questa lingua non è ancora supportata. Resta sintonizzato o contattaci.",
+    "backHome": "Torna alla home",
+    "loginOrRegister": "Accedi o registrati",
+    "languages": "Lingue"
+  },
+  "flags": {
+    "br": "Portoghese",
+    "de": "Tedesco",
+    "it": "Italiano",
+    "fr": "Francese",
+    "es": "Spagnolo",
+    "us": "Inglese"
+  },
+  "politicaPrivacidade": {
+    "titulo": "Informativa sulla Privacy",
+    "dataUltimaAtualizacao": "Ultimo aggiornamento: 2 maggio 2025",
+    "introducao": "La tua privacy è importante per noi. Questa Informativa descrive come raccogliamo, utilizziamo, memorizziamo e condividiamo le informazioni nell'app MosaicoApp.",
+    "infoColetadas": "1. Informazioni raccolte",
+    "infoDetalhes": "- Informazioni fornite dall'utente (es: nome, email)\n- Informazioni automatiche (es: dati di utilizzo, identificatori del dispositivo, posizione)",
+    "usoInfo": "2. Utilizzo delle informazioni",
+    "usoDetalhes": "- Per fornire e migliorare i servizi dell'app\n- Per personalizzare contenuti o notifiche\n- Per scopi analitici e statistici",
+    "compartilhamento": "3. Condivisione delle informazioni",
+    "compartilhamentoDetalhes": "- Non vendiamo dati personali\n- Possiamo condividere se richiesto dalla legge",
+    "armazenamento": "4. Conservazione e sicurezza",
+    "armazenamentoDetalhes": "- Usiamo misure di sicurezza tecniche e organizzative",
+    "direitos": "5. Diritti dell'utente",
+    "direitosDetalhes": "- Accesso, correzione o cancellazione dei dati personali\n- Revoca del consenso, se applicabile",
+    "cookies": "6. Cookie e tecnologie simili",
+    "cookiesDetalhes": "- Questa app può utilizzare cookie o strumenti simili per analisi e funzionamento",
+    "alteracoes": "7. Modifiche a questa informativa",
+    "alteracoesDetalhes": "- Potremmo aggiornare questa informativa. Notificheremo eventuali modifiche importanti.",
+    "contato": "8. Contatto",
+    "contatoDetalhes": "- In caso di domande, contattaci: suporte@mosaicotlm.app",
+    "aceitar": "Ho letto e accetto l'Informativa sulla Privacy",
+    "recusar": "Non accetto"
+  },
+  "metricas": {
+    "quantidadeTotalDeUsuarios": "Totale Utenti",
+    "quantidadeTotalDeMosaicos": "Totale Mosaici",
+    "quantidadeTotalDeTesselas": "Totale Tessere",
+    "quantidadeTotalDeConteudos": "Totale Contenuti",
+    "quantidadeMediaDeTesselasPorMosaico": "Media di Tessere per Mosaico",
+    "quantidadeMediaDeConteudosPorTessela": "Media di Contenuti per Tessera",
+    "dashboardMetricas": "Dashboard delle metriche",
+    "abaGerais": "Metriche Generali",
+    "abaProprietarios": "Metriche per Proprietario",
+    "carregandoMetricas": "Caricamento delle metriche...",
+    "carregandoMetricasProprietarios": "Caricamento delle metriche dei proprietari...",
+    "graficoMosaicosCriados": "Mosaici Creati (ultimi 30 giorni)",
+    "graficoTesselasCriadas": "Tessere Create (ultimi 30 giorni)",
+    "graficoConteudosAdicionados": "Contenuti Aggiunti (ultimi 30 giorni)",
+    "proprietario": "Proprietario",
+    "cadastro": "Registrazione",
+    "usuariosVinculados": "Utenti Collegati",
+    "mosaicos": "Mosaici",
+    "plano": "Piano",
+    "quantidadeDeTesselas": "Quantità di Tessere",
+    "quantidadeDeConteudos": "Quantità di Contenuti"
+  },
+  "termos": {
+    "titulo": "Termini di Utilizzo",
+    "paragrafos": {
+      "intro": "Utilizzando questo sistema, accetti i seguenti termini:",
+      "1": "1. Sei responsabile di tutte le azioni compiute con il tuo account.",
+      "2": "2. È vietato condividere informazioni sensibili con terzi senza autorizzazione.",
+      "3": "3. Il team si riserva il diritto di sospendere l'accesso in caso di uso improprio.",
+      "4": "4. I dati raccolti saranno trattati secondo la nostra politica sulla privacy.",
+      "5": "5. L'uso continuato implica l'accettazione di eventuali aggiornamenti futuri dei termini.",
+      "6": "6. Il sistema può essere aggiornato o sottoposto a manutenzione in qualsiasi momento.",
+      "7": "7. In caso di domande, contatta il nostro team di supporto.",
+      "final": "Scorrendo fino in fondo e accettando, confermi di aver letto, compreso e accettato le condizioni presentate."
+    },
+    "checkbox": "Ho letto e accetto i Termini di Utilizzo",
+    "continuar": "Continua"
+  },
+  "validation": {
+    "typeRequired": "Tipo obbligatorio",
+    "valueRequired": "Valore obbligatorio",
+    "maximumCharacters": "Massimo 25 caratteri",
+    "descriptionRequired": "Descrizione obbligatoria"
+  },
+  "filtro": {
+    "placeholder": "Cerca per nome o descrizione",
+    "localizar": "Localizza",
+    "abrir": "Apri",
+    "semTitulo": "Senza titolo",
+    "semDescricao": "Descrizione non definita",
+    "nenhumaEncontrada": "Nessuna tessela trovata"
+  },
+  "cardMosaico": {
+    "publico": "PUBBLICO",
+    "global": "GLOBALE",
+    "editar": "Modifica Mosaico",
+    "nomePlaceholder": "Nome del mosaico",
+    "descricaoPlaceholder": "Descrizione",
+    "mosaicoGlobal": "Mosaico Globale?",
+    "selecione": "Seleziona",
+    "sim": "Sì",
+    "nao": "No",
+    "jaPublico": "Questo mosaico è già pubblico.",
+    "tornarPrivado": "Rendi privato",
+    "desejaTornarPublico": "Vuoi renderlo pubblico?",
+    "exemploPath": "Es: mio-mosaico",
+    "cancelar": "Annulla",
+    "salvar": "Salva",
+    "atualizadoSucesso": "Mosaico aggiornato con successo!",
+    "erroAtualizar": "Errore nell'aggiornamento del mosaico.",
+    "alteradoParaPrivado": "Il mosaico è stato reso privato.",
+    "tesselas": "Tesselas",
+    "erroPrivatizarSemRemoverPublico": "Rendi il mosaico privato prima di rimuoverne la visibilità globale."
+  },
+  "menu": {
+    "title": "Mosaico",
+    "newMosaic": "Nuovo Mosaico",
+    "inviteUser": "Invita Utente",
+    "linkedUsers": "Utenti Collegati",
+    "metrics": "Metriche",
+    "newPlan": "Nuovo Piano",
+    "plans": "Piani",
+    "currentPlan": "Piano attuale:",
+    "settings": "Impostazioni",
+    "contactUs": "Contattaci",
+    "logout": "Esci",
+    "newMosaicShort": "Mosaico",
+    "inviteShort": "Invita",
+    "usersShort": "Utenti",
+    "metricsShort": "Metriche",
+    "newPlanShort": "Piano",
+    "plansShort": "Piani",
+    "settingsShort": "Impost.",
+    "contactShort": "Contatto",
+    "logoutShort": "Esci"
+  }
+}
