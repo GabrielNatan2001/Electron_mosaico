@@ -4,7 +4,7 @@ const os = require('node:os');
 const chokidar = require('chokidar');
 
 // Importar configuração da API
-const { getMosaicosBg } = require('./api-config');
+const { getMosaicosBg, getMosaicoById, downloadConteudoTessela } = require('./api-config');
 
 function ObterPastaBase() {
   return path.join(os.homedir(), 'MosaicoElectron');
@@ -152,6 +152,8 @@ async function buscarMosaicosECriarArquivos(userId, token, proprietarioId, pasta
                 await fs.mkdir(pastaMosaicoDoUsuario, { recursive: true });
                 await writeLog(`[API] Pasta criada com sucesso: ${mosaico.nome} - ${mosaico.descricao || 'Sem descrição'}`);
               }
+
+              await ObterTesselasPorMosaidoId(userId, token, proprietarioId, mosaico.id, pastaMosaicoDoUsuario);
             } catch (folderError) {
               await writeLog(`[API] Erro ao criar pasta ${mosaico.nome}: ${folderError.message}`);
             }
@@ -166,6 +168,44 @@ async function buscarMosaicosECriarArquivos(userId, token, proprietarioId, pasta
   } catch (error) {
     await writeLog(`[API] Erro na busca/processamento da API: ${error.message}`);
   }
+}
+
+async function ObterTesselasPorMosaidoId(userId, token, proprietarioId, mosaidoId, pastaMosaicoDoUsuario) {
+  const mosaico = await getMosaicoById(userId, token, proprietarioId, mosaidoId);
+
+
+  for (const tessela of mosaico.tesselas) {
+    var pastaTessela = await CriarPastaTessela(tessela, pastaMosaicoDoUsuario)
+    for (const conteudo of tessela.conteudos) {
+      try {
+        if (['OFFICE'].includes(conteudo.tipo?.toUpperCase())) {
+          var nomeArquivo = conteudo.url.split('/').pop();
+          var caminhoArquivo = path.join(pastaTessela, nomeArquivo);
+          var conteudoArquivo = await downloadConteudoTessela(userId, token, proprietarioId, conteudo.url);
+
+          await fs.writeFile(caminhoArquivo, conteudoArquivo);
+        }
+      } catch (error) {
+        await writeLog(`[API] Erro ao baixar conteúdo da tessela ${tessela.nome}: ${error.message}`);
+      }
+    }
+  }
+}
+
+
+async function CriarPastaTessela(tessela, pastaMosaico) {
+  const pasta = path.join(pastaMosaico,  tessela.descricao);
+
+  try {
+    await fs.access(pasta);
+  } catch (error) {
+    try {
+      await fs.mkdir(pasta, { recursive: true });
+    } catch (mkdirError) {
+      throw new Error(`Não foi possível criar a pasta: ${mkdirError.message}`);
+    }
+  }
+  return pasta;
 }
 
 module.exports = { startWatcher };
