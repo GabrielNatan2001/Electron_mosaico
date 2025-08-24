@@ -34,8 +34,8 @@ export function LanguageSelect({
         <SelectValue placeholder={t("language") || "Idioma"} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem key="pt-BR" value="pt-BR">
-          {t("languages.pt-BR")}
+        <SelectItem key="ptbr" value="ptbr">
+          {t("languages.ptbr")}
         </SelectItem>
         <SelectItem key="en" value="en">
           {t("languages.en")}

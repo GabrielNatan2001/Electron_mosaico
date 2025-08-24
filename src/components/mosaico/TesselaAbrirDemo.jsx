@@ -8,7 +8,7 @@ import {
 import idiomasIcon from "@/assets/IconIdiomas.png";
 
 const flags = [
-  { flagCode: "br", label: "Português", i18nCode: "pt-BR" },
+  { flagCode: "br", label: "Português", i18nCode: "ptbr" },
   { flagCode: "de", label: "Deutsch", i18nCode: "de" },
   { flagCode: "it", label: "Italiano", i18nCode: "it" },
   { flagCode: "fr", label: "Français", i18nCode: "fr" },

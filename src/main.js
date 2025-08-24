@@ -17,6 +17,7 @@ const createWindow = () => {
     width: 1200,
     height: 800,
     frame: false,
+    icon: path.join(__dirname, 'assets', 'logoMosaico.png'),
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
     transparent: true,
     backgroundColor: '#00000000',

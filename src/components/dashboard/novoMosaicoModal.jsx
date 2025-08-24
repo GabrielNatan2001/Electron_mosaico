@@ -32,7 +32,7 @@ export default function NovoMosaicoModal({ open, onClose }) {
   const { t } = useTranslation();
   const [ehGlobal, setEhGlobal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState("pt-BR");
+  const [language, setLanguage] = useState("ptbr");
   const { fetchMosaicos } = useAuth();
   const { ehAdmin, salvarMosaicos } = useAuth();
   const [publicarMosaico, setPublicarMosaico] = useState(false);
@@ -90,7 +90,7 @@ export default function NovoMosaicoModal({ open, onClose }) {
     } finally {
       setIsLoading(false);
       setEhGlobal(false);
-      setLanguage("pt-BR");
+      setLanguage("ptbr");
     }
   };
 

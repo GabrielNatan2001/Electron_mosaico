@@ -46,7 +46,7 @@ export default function DadosFinanceiros() {
   const opcoes = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
       const mes = (i + 1).toString().padStart(2, "0");
-      const label = new Date(2025, i).toLocaleDateString("pt-BR", {
+      const label = new Date(2025, i).toLocaleDateString("ptbr", {
         month: "long",
       });
       return {
@@ -112,7 +112,7 @@ export default function DadosFinanceiros() {
           <p className="text-sm opacity-90">Receita mensal</p>
           <p className="text-3xl font-bold mt-1">
             R${" "}
-            {Number(dados.receitaMensal ?? 0).toLocaleString("pt-BR", {
+            {Number(dados.receitaMensal ?? 0).toLocaleString("ptbr", {
               minimumFractionDigits: 2,
             })}
           </p>
@@ -126,7 +126,7 @@ export default function DadosFinanceiros() {
           <p className="text-sm opacity-90">Receita anual</p>
           <p className="text-3xl font-bold mt-1">
             R${" "}
-            {Number(dados.receitaAnual ?? 0).toLocaleString("pt-BR", {
+            {Number(dados.receitaAnual ?? 0).toLocaleString("ptbr", {
               minimumFractionDigits: 2,
             })}
           </p>

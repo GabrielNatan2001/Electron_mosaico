@@ -88,7 +88,12 @@ module.exports = {
             ignore: ['**/node_modules/**']
           }
         },
-        { from: path.resolve(__dirname, 'public'), to: '.' }
+        { from: path.resolve(__dirname, 'public'), to: '.' },
+        { 
+          from: path.resolve(__dirname, 'src/assets'), 
+          to: 'assets',
+          noErrorOnMissing: false
+        }
       ]
     }),
     new webpack.DefinePlugin({

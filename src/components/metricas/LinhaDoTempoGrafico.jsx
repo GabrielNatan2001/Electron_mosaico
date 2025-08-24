@@ -33,7 +33,7 @@ export function LinhaDoTempoGrafico({ data, titulo, isDarkMode }) {
               fontFamily: "Inter, sans-serif",
             }}
             tickFormatter={(date) =>
-              new Date(date).toLocaleDateString("pt-BR", {
+              new Date(date).toLocaleDateString("ptbr", {
                 day: "2-digit",
                 month: "short",
               })

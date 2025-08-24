@@ -63,7 +63,7 @@ export default function DetalhesProprietarioPage() {
           <span className="text-gray-500 dark:text-white/50">|</span>
           <span className="flex items-center gap-1 text-sm text-gray-700 dark:text-white/80">
             <CalendarDays size={16} />
-            {new Date(dados.dataCadastro).toLocaleDateString("pt-BR")}
+            {new Date(dados.dataCadastro).toLocaleDateString("ptbr")}
           </span>
         </p>
         <p className="flex items-center gap-2 text-sm text-gray-700 dark:text-white/80">
@@ -87,7 +87,7 @@ export default function DetalhesProprietarioPage() {
             Cadastro
           </p>
           <p className="text-lg font-semibold">
-            {new Date(dados.dataCadastro).toLocaleDateString("pt-BR")}
+            {new Date(dados.dataCadastro).toLocaleDateString("ptbr")}
           </p>
         </div>
         <div className="p-4 rounded-lg text-center bg-white dark:bg-[#2e3e5c] shadow-sm">
@@ -116,7 +116,7 @@ export default function DetalhesProprietarioPage() {
                 </div>
                 <p className="text-xs mt-1 text-gray-500 dark:text-white/50">
                   Criado em{" "}
-                  {new Date(m.dataCadastro).toLocaleDateString("pt-BR")}
+                  {new Date(m.dataCadastro).toLocaleDateString("ptbr")}
                 </p>
               </div>
             ))}

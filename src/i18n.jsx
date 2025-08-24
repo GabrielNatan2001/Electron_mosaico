@@ -13,6 +13,14 @@ i18n
   .init({
     backend: {
       loadPath: isElectron ? "../locales/{{lng}}/{{ns}}.json" : "/locales/{{lng}}/{{ns}}.json",
+      crossDomain: false,
+      withCredentials: false,
+      requestOptions: {
+        cache: 'force-cache'
+      },
+      allowMultiLoading: false,
+      partialBundledLanguages: true,
+      reloadInterval: false
     },
     debug: false,
     load: 'languageOnly',
@@ -26,12 +34,24 @@ i18n
       ],
       lookupSessionStorage: "lang",
       lookupLocalStorage: "i18nextLng",
-      caches: ["sessionStorage"],
+      caches: ["sessionStorage", "localStorage"],
+      checkWhitelist: true,
+      checkForSimilarInWhitelist: true,
     },
     fallbackLng: "ptbr",
+    supportedLngs: ["ptbr", "en", "es", "fr", "de", "it", "ru", "zh"],
+    nonExplicitSupportedLngs: true,
+    load: 'all',
+    preload: ['ptbr'],
     interpolation: {
       escapeValue: false,
     },
+    react: {
+      useSuspense: false
+    },
+    initImmediate: false,
+    saveMissing: false,
+    missingKeyHandler: false
   });
 
 export default i18n;
