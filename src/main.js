@@ -69,13 +69,7 @@ session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     "object-src 'none'"
   ].join('; ');
 
-  const prodCsp = [
-    "default-src 'self' 'unsafe-inline' data:",
-    "script-src 'self' 'unsafe-inline'",
-    "connect-src 'self' ws://localhost:9000 ws://0.0.0.0:9000 ws://localhost:3000 ws://0.0.0.0:3000 https://localhost:7262 http://localhost:7262 https://mosaicoapiv30-homolog-ecduejgfbsgpfnc2.brazilsouth-01.azurewebsites.net https://mosaicoapiv3-cvbbe0exhaeehveu.brazilsouth-01.azurewebsites.net"
-  ].join('; ');
-
-  const csp = isDev ? devCsp : prodCsp;
+  const csp = devCsp;
 
   callback({
     responseHeaders: {
