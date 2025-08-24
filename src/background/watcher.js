@@ -4,14 +4,29 @@ const os = require('node:os');
 const chokidar = require('chokidar');
 
 // Importar configuração da API
-const { getMosaicosBg, getMosaicoById, downloadConteudoTessela } = require('./api-config');
+const { getMosaicosBg, getMosaicoById, downloadConteudoTessela, addTessela, addMosaico } = require('./api-config');
 
 const TEMPO_FICA_PROCESSAR_EVENTOS_ALTERACOES_ARQUIVOS = 10000; //ms
 const listaEventoArquivos = [];
 const pathIdentifierMap = new Map();
+const mosaicosUsuario = [];
+let userId;;
+let token;
+let proprietarioId;
 
 function ObterPastaBase() {
   return path.join(os.homedir(), 'MosaicoElectron');
+}
+function getSystemLocale() {
+  return Intl.DateTimeFormat().resolvedOptions().locale;
+}
+
+function isTemporaryFile(filePath) {
+  const name = path.basename(filePath);
+  const tempPatterns = [
+    /^~.*$/, /\.~.*$/, /\.tmp$/, /\.swp$/, /\.part$/, /\.crdownload$/
+  ];
+  return tempPatterns.some((r) => r.test(name));
 }
 
 async function processQueue() {
@@ -68,7 +83,7 @@ async function processQueue() {
           type: 'rename',
           oldPath: item.path,
           newPath: addDirItem.path,
-          hora: addDirItem.hora 
+          hora: addDirItem.hora
         });
         usados.add(i);
         usados.add(matchIndex);
@@ -91,22 +106,23 @@ async function processQueue() {
   for (const event of ultimoPorIdentifier) {
     switch (event.type) {
       case 'addDir':
-        await writeLog(`[ADDDIR] PASTA FINAL: ${event.path} - identifier: ${identifier}`);
+        await CriarMosaicoOuTessela(event.path);
+        await writeLog(`[ADDDIR] PASTA FINAL: ${event.path} - identifier: ${event.identifier}`);
         break;
       case 'add':
-        await writeLog(`[ADD] ARQUIVO FINAL: ${event.path} - identifier: ${identifier}`);
+        await writeLog(`[ADD] ARQUIVO FINAL: ${event.path} - identifier: ${event.identifier}`);
         break;
       case 'change':
-        await writeLog(`[CHANGE] ARQUIVO MODIFICADO: ${event.path} - identifier: ${identifier}`);
+        await writeLog(`[CHANGE] ARQUIVO MODIFICADO: ${event.path} - identifier: ${event.identifier}`);
         break;
       case 'unlinkDir':
-        await writeLog(`[UNLINKDIR] PASTA DELETADA: ${event.path} - identifier: ${identifier}`);
+        await writeLog(`[UNLINKDIR] PASTA DELETADA: ${event.path} - identifier: ${event.identifier}`);
         break;
       case 'unlink':
-        await writeLog(`[UNLINK] ARQUIVO DELETADO: ${event.path} - identifier: ${identifier}`);
+        await writeLog(`[UNLINK] ARQUIVO DELETADO: ${event.path} - identifier: ${event.identifier}`);
         break;
       case 'renameDir':
-        await writeLog(`[RENAME] PASTA: ${event.oldPath} → ${event.path} - identifier: ${identifier}`);
+        await writeLog(`[RENAME] PASTA: ${event.oldPath} → ${event.path} - identifier: ${event.identifier}`);
         break;
     }
   }
@@ -124,9 +140,9 @@ function queueEvent(identifier, path, type) {
 
 async function startWatcher(options = {}) {
   const pastaBase = ObterPastaBase();
-  const userId = options.userId;
-  const token = options.token;
-  const proprietarioId = options.proprietarioId;
+  userId = options.userId;
+  token = options.token;
+  proprietarioId = options.proprietarioId;
 
   if (!userId) {
     throw new Error('userId é obrigatório para iniciar o watcher');
@@ -147,12 +163,14 @@ async function startWatcher(options = {}) {
 
   // ===== ARQUIVOS =====
   watcher.on('add', async (filePath, stats) => {
+    if (isTemporaryFile(filePath)) return;
     const identifier = stats ? stats.birthtimeMs : Date.now();
     pathIdentifierMap.set(filePath, identifier);
     queueEvent(identifier, filePath, 'add');
   });
 
   watcher.on('unlink', async (filePath) => {
+    if (isTemporaryFile(filePath)) return;
     const identifier = pathIdentifierMap.get(filePath) || Date.now();
     pathIdentifierMap.delete(filePath);
     queueEvent(identifier, filePath, 'unlink');
@@ -165,6 +183,7 @@ async function startWatcher(options = {}) {
 
   // ===== PASTAS =====
   watcher.on('addDir', async (dirPath) => {
+    if (isTemporaryFile(dirPath)) return;
     const stats = await fs.stat(dirPath);
     const identifier = stats.birthtimeMs;
     pathIdentifierMap.set(dirPath, identifier);
@@ -172,6 +191,7 @@ async function startWatcher(options = {}) {
   });
 
   watcher.on('unlinkDir', async (dirPath) => {
+    if (isTemporaryFile(dirPath)) return;
     const identifier = pathIdentifierMap.get(dirPath) || Date.now();
     pathIdentifierMap.delete(dirPath);
     queueEvent(identifier, dirPath, 'unlinkDir');
@@ -284,21 +304,22 @@ async function buscarMosaicosECriarArquivos(userId, token, proprietarioId, pasta
 
 async function ObterTesselasPorMosaidoId(userId, token, proprietarioId, mosaidoId, pastaMosaicoDoUsuario) {
   const mosaico = await getMosaicoById(userId, token, proprietarioId, mosaidoId);
+  if (mosaico) {
+    mosaicosUsuario.push(mosaico);
+    for (const tessela of mosaico.tesselas) {
+      var pastaTessela = await CriarPastaTessela(tessela, pastaMosaicoDoUsuario)
+      for (const conteudo of tessela.conteudos) {
+        try {
+          if (['OFFICE'].includes(conteudo.tipo?.toUpperCase())) {
+            var nomeArquivo = conteudo.url.split('/').pop();
+            var caminhoArquivo = path.join(pastaTessela, nomeArquivo);
+            var conteudoArquivo = await downloadConteudoTessela(userId, token, proprietarioId, conteudo.url);
 
-
-  for (const tessela of mosaico.tesselas) {
-    var pastaTessela = await CriarPastaTessela(tessela, pastaMosaicoDoUsuario)
-    for (const conteudo of tessela.conteudos) {
-      try {
-        if (['OFFICE'].includes(conteudo.tipo?.toUpperCase())) {
-          var nomeArquivo = conteudo.url.split('/').pop();
-          var caminhoArquivo = path.join(pastaTessela, nomeArquivo);
-          var conteudoArquivo = await downloadConteudoTessela(userId, token, proprietarioId, conteudo.url);
-
-          await fs.writeFile(caminhoArquivo, conteudoArquivo);
+            await fs.writeFile(caminhoArquivo, conteudoArquivo);
+          }
+        } catch (error) {
+          await writeLog(`[API] Erro ao baixar conteúdo da tessela ${tessela.nome}: ${error.message}`);
         }
-      } catch (error) {
-        await writeLog(`[API] Erro ao baixar conteúdo da tessela ${tessela.nome}: ${error.message}`);
       }
     }
   }
@@ -322,6 +343,52 @@ async function CriarPastaTessela(tessela, pastaMosaico) {
     }
   }
   return pasta;
+}
+
+async function CriarMosaicoOuTessela(dirPath) {
+  var ehMosaico = VerificaSePastaEhMosaico(dirPath);
+  var linguagem = getSystemLocale();
+  var nomePasta = dirPath.split(path.sep).pop();
+
+  if (ehMosaico) {
+    const requestCreateMosaico = {
+      nome: nomePasta,
+      descricao: nomePasta,
+      idioma: linguagem,
+      ehGlobal: false
+    }
+    //deu certo a criação
+    var response = await addMosaico(userId, token, proprietarioId, requestCreateMosaico);
+    if (response) {
+      mosaicosUsuario.push(response);
+    }
+  } else {
+    const pastaMosaico = path.basename(path.dirname(dirPath));
+    var mosaicoTessela = mosaicosUsuario.filter(x => x.nome == pastaMosaico)[0]
+    const requestCreateTessela = {
+      label: nomePasta,
+      descricao: nomePasta,
+      iconPreDefinido: '/iconesGerais/20250225t185428737z_icone_(37).png',
+      icon: undefined,
+      mosaicoId: mosaicoTessela.id
+    }
+
+    //deu certo a criação
+    var response = await addTessela(userId, token, proprietarioId, requestCreateTessela);
+    if (response) {
+      mosaicoTessela.tesselas.push(response);
+    }
+  }
+}
+
+function VerificaSePastaEhMosaico(caminho) {
+  var partes = caminho.split(path.sep);
+  const indiceUser = partes.findIndex(p => p.startsWith("user_"));
+
+  if (indiceUser === -1) {
+    return 0; // não encontrou "user_"
+  }
+  return (partes.length - (indiceUser + 1)) == 1; // se qtde == 1 então é mosaico, senão é tessela
 }
 
 module.exports = { startWatcher };

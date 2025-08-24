@@ -126,9 +126,58 @@ async function downloadConteudoTessela(userId, token, proprietarioId, url) {
   }
 }
 
+async function addTessela(userId, token, proprietarioId, request) {
+  try {
+    const endpoint = `/tesselas`;
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'user-id': userId,
+      "Content-Type": "multipart/form-data",
+    };
+    // Adicionar proprietario-id no header
+    if (proprietarioId) {
+      headers['proprietario-id'] = proprietarioId;
+    }
+
+    const response = await apiClient.post(endpoint, request, { headers });
+    if (response.data.data) {
+      return response.data.data;
+    } else {
+      return response.data;
+    }
+  } catch (error) {
+    return [];
+  }
+}
+
+async function addMosaico(userId, token, proprietarioId, request) {
+  try {
+    const endpoint = `/mosaicos`;
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'user-id': userId
+    };
+    // Adicionar proprietario-id no header
+    if (proprietarioId) {
+      headers['proprietario-id'] = proprietarioId;
+    }
+
+    const response = await apiClient.post(endpoint, request, { headers });
+    if (response.data.data) {
+      return response.data.data;
+    } else {
+      return response.data;
+    }
+  } catch (error) {
+    return error;
+  }
+}
+
 module.exports = {
   API_CONFIG,
   getMosaicosBg,
   getMosaicoById,
-  downloadConteudoTessela
+  downloadConteudoTessela,
+  addTessela,
+  addMosaico
 };
