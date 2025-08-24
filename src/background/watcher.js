@@ -88,7 +88,6 @@ async function processQueue() {
     }, {})
   );
 
-  await writeLog(`itens agrupados: ${JSON.stringify(ultimoPorIdentifier)}`);
   for (const event of ultimoPorIdentifier) {
     switch (event.type) {
       case 'addDir':

@@ -24,24 +24,9 @@ export function AuthProvider({ children }) {
 
   // Função para iniciar o watcher
   async function startWatcher(userId, token, proprietarioId) {
-    try {
-      console.log('Tentando iniciar watcher para userId:', userId);
-      console.log('Token disponivel:', token);
-      console.log('ProprietarioId disponivel:', proprietarioId);
-      console.log('window.watcherControls disponível:', !!window.watcherControls);
-      
+    try {      
       if (window.watcherControls && window.watcherControls.start) {
-        console.log('Chamando watcherControls.start...');
         const result = await window.watcherControls.start(userId, token, proprietarioId);
-        console.log('Resultado do startWatcher:', result);
-        
-        if (result.success) {
-          console.log('Watcher iniciado com sucesso para o usuário:', userId);
-        } else {
-          console.error('Erro ao iniciar watcher:', result.message);
-        }
-      } else {
-        console.error('watcherControls não está disponível');
       }
     } catch (error) {
       console.error('Erro ao iniciar watcher:', error);
