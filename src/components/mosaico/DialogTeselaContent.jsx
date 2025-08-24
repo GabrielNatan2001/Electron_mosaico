@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { getTeselaByIdInfo } from "@/api/services/informacoesService";
 import CardConteudoTessela from "./CardConteudoTessela";
 import notFoundMosaico from "@/assets/freepik__adjust__19912.png";
+import { fixIconPath } from "@/utils/iconPath";
 
 const initialState = {
   id: "",
@@ -207,11 +208,11 @@ export default function DialogTeselaContent({
       if (response) {
         setTeselaConteudo((prev) => ({
           ...prev,
-          icon: response.data.iconUrl,
+          icon: fixIconPath(response.data.iconUrl),
           label: label,
           descricao: descricao,
         }));
-        data.icon = response.data.iconUrl;
+        data.icon = fixIconPath(response.data.iconUrl);
         data.label = label;
         data.descricao = descricao;
       }

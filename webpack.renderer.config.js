@@ -83,10 +83,7 @@ module.exports = {
         { 
           from: path.resolve(__dirname, 'public/locales'), 
           to: 'locales',
-          noErrorOnMissing: false,
-          globOptions: {
-            ignore: ['**/node_modules/**']
-          }
+          noErrorOnMissing: false
         },
         { from: path.resolve(__dirname, 'public'), to: '.' },
         { 

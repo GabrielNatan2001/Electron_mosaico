@@ -368,7 +368,7 @@ async function CriarMosaicoOuTessela(dirPath) {
     const requestCreateTessela = {
       label: nomePasta,
       descricao: nomePasta,
-      iconPreDefinido: '/iconesGerais/20250225t185428737z_icone_(37).png',
+      iconPreDefinido: '../iconesGerais/20250225t185428737z_icone_(37).png',
       icon: undefined,
       mosaicoId: mosaicoTessela.id
     }

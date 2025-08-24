@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getMosaicoByPath } from "@/api/services/mosaicoService";
+import { fixIconPath } from "@/utils/iconPath";
 
 const nodeTypes = {
   icon: NodeIcon,
@@ -47,12 +48,12 @@ export function MosaicoPagePath() {
           y: item.y,
         },
         data: {
-          icon: item.iconUrl || "",
+          icon: fixIconPath(item.iconUrl) || "",
           label: item.label,
           descricao: item.descricao || "",
           resumo: "",
           tipo: "",
-          valor: item.iconUrl,
+          valor: fixIconPath(item.iconUrl),
           teselaId: item.id,
         },
         draggable: false,

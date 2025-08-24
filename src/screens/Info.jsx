@@ -14,6 +14,7 @@ import TesselaAbrirDemo from "@/components/mosaico/TesselaAbrirDemo";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { fixIconPath } from "@/utils/iconPath";
 
 const nodeTypes = {
   icon: NodeIcon,
@@ -45,12 +46,12 @@ export function Info() {
         type: "icon",
         position: { x: item.x, y: item.y },
         data: {
-          icon: item.iconUrl || "",
+          icon: fixIconPath(item.iconUrl) || "",
           label: item.label,
           descricao: "",
           resumo: "",
           tipo: "",
-          valor: item.iconUrl,
+          valor: fixIconPath(item.iconUrl),
           teselaId: item.id,
         },
         draggable: false,

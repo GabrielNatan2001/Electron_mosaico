@@ -1,8 +1,8 @@
 {
-  "name": "teste-mosaico",
-  "productName": "teste-mosaico",
+  "name": "tlm-mosaico",
+  "productName": "tlm-mosaico",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "TlsMosaico",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",

@@ -20,6 +20,7 @@ import { getMosaicoById } from "@/api/services/mosaicoService";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { fixIconPath } from "@/utils/iconPath";
 
 const nodeTypes = {
   icon: NodeIcon,
@@ -56,12 +57,12 @@ export function MosaicoPage() {
         y: item.y,
       },
       data: {
-        icon: item.iconUrl || "",
+        icon: fixIconPath(item.iconUrl) || "",
         label: item.label,
         descricao: item.descricao || "",
         resumo: "",
         tipo: "",
-        valor: item.iconUrl,
+        valor: fixIconPath(item.iconUrl),
         teselaId: item.id,
       },
       draggable: false,
@@ -134,16 +135,16 @@ export function MosaicoPage() {
           id: `${data.data.id}`,
           type: "icon",
           position: { x: posX, y: posY },
-          data: {
-            icon: data.data.iconUrl,
-            label: data.data.label,
-            descricao,
-            resumo,
-            tipo,
-            valor,
-            iconSelecionado,
-            teselaId: data.data.id,
-          },
+                  data: {
+          icon: fixIconPath(data.data.iconUrl),
+          label: data.data.label,
+          descricao,
+          resumo,
+          tipo,
+          valor,
+          iconSelecionado,
+          teselaId: data.data.id,
+        },
           draggable: !locked,
           style: {},
         };
