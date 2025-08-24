@@ -80,9 +80,20 @@ module.exports = {
     new webpack.DefinePlugin(finalEnvDefine),
     new CopyWebpackPlugin({
       patterns: [
-        { from: path.resolve(__dirname, 'src/locales'), to: 'locales' },
+        { 
+          from: path.resolve(__dirname, 'public/locales'), 
+          to: 'locales',
+          noErrorOnMissing: false,
+          globOptions: {
+            ignore: ['**/node_modules/**']
+          }
+        },
         { from: path.resolve(__dirname, 'public'), to: '.' }
       ]
+    }),
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+      'process.env.IS_ELECTRON': JSON.stringify(true)
     })
   ],
   resolve: {

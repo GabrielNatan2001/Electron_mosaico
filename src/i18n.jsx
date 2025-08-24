@@ -3,15 +3,19 @@ import { initReactI18next } from "react-i18next";
 import Backend from "i18next-http-backend";
 import LanguageDetector from "i18next-browser-languagedetector";
 
+// Detecta se estamos no Electron
+const isElectron = window && window.process && window.process.type || process.env.IS_ELECTRON;
+
 i18n
   .use(LanguageDetector)
   .use(Backend)
   .use(initReactI18next)
   .init({
     backend: {
-      loadPath: "/locales/{{lng}}/{{ns}}.json",
+      loadPath: isElectron ? "../locales/{{lng}}/{{ns}}.json" : "/locales/{{lng}}/{{ns}}.json",
     },
     debug: false,
+    load: 'languageOnly',
     detection: {
       order: [
         "sessionStorage",
