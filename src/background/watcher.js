@@ -4,7 +4,7 @@ const os = require('node:os');
 const chokidar = require('chokidar');
 
 // Importar configuração da API
-const { getMosaicosBg, getMosaicoById, downloadConteudoTessela, addTessela, addMosaico } = require('./api-config');
+const { getMosaicosBg, getMosaicoById, downloadConteudoTessela, addTessela, addMosaico, atualizarConteudoTessela } = require('./api-config');
 
 const TEMPO_FICA_PROCESSAR_EVENTOS_ALTERACOES_ARQUIVOS = 10000; //ms
 const listaEventoArquivos = [];
@@ -115,7 +115,7 @@ async function processQueue() {
   for (const event of ultimoPorIdentifier) {
     switch (event.type) {
       case 'addDir':
-        await CriarMosaicoOuTessela(event.path);
+        //await CriarMosaicoOuTessela(event.path);
         await writeLog(`[ADDDIR] PASTA FINAL: ${event.path} - identifier: ${event.identifier}`);
         break;
       case 'add':
@@ -123,6 +123,7 @@ async function processQueue() {
         break;
       case 'change':
         await writeLog(`[CHANGE] ARQUIVO MODIFICADO: ${event.path} - identifier: ${event.identifier}`);
+        await atualizarArquivoModificado(event.path);
         break;
       case 'unlinkDir':
         await writeLog(`[UNLINKDIR] PASTA DELETADA: ${event.path} - identifier: ${event.identifier}`);
@@ -437,6 +438,130 @@ function VerificaSePastaEhMosaico(caminho) {
     return 0; // não encontrou "user_"
   }
   return (partes.length - (indiceUser + 1)) == 1; // se qtde == 1 então é mosaico, senão é tessela
+}
+
+async function atualizarArquivoModificado(filePath) {
+  try {
+    // Verificar se é um arquivo temporário
+    if (isTemporaryFile(filePath)) {
+      return;
+    }
+
+    // Extrair informações do caminho do arquivo
+    const partes = filePath.split(path.sep);
+    const indiceUser = partes.findIndex(p => p.startsWith("user_"));
+    
+    if (indiceUser === -1) {
+      await writeLog(`[UPDATE] Caminho inválido para atualização: ${filePath}`);
+      return;
+    }
+
+    // Verificar se é uma tessela (deve ter pelo menos 3 níveis: user_X/mosaico/tessela/arquivo)
+    if (partes.length < (indiceUser + 4)) {
+      await writeLog(`[UPDATE] Arquivo não está em uma tessela válida: ${filePath}`);
+      return;
+    }
+
+    const nomeMosaico = partes[indiceUser + 1];
+    const nomeTessela = partes[indiceUser + 2];
+    const nomeArquivo = partes[partes.length - 1];
+
+    // Encontrar o mosaico correspondente
+    const mosaico = mosaicosUsuario.find(m => m.nome === nomeMosaico);
+    if (!mosaico) {
+      await writeLog(`[UPDATE] Mosaico não encontrado: ${nomeMosaico}`);
+      return;
+    }
+
+    // Encontrar a tessela correspondente
+    const tessela = mosaico.tesselas.find(t => t.descricao === nomeTessela);
+    if (!tessela) {
+      await writeLog(`[UPDATE] Tessela não encontrada: ${nomeTessela}`);
+      return;
+    }
+
+    // Encontrar o conteúdo correspondente
+    const conteudo = tessela.conteudos.find(c => {
+      // Verificar se o conteúdo tem uma URL e se o nome do arquivo corresponde
+      if (c.url) {
+        const urlParts = c.url.split('/');
+        const urlFileName = urlParts[urlParts.length - 1];
+        return urlFileName === nomeArquivo;
+      }
+      // Se não tiver URL, verificar pelo nome
+      return c.nome === nomeArquivo;
+    });
+
+    if (!conteudo) {
+      await writeLog(`[UPDATE] Conteúdo não encontrado para arquivo: ${nomeArquivo}`);
+      return;
+    }
+
+    // Ler o arquivo modificado
+    const arquivoBuffer = await fs.readFile(filePath);
+    
+    // Determinar o tipo de conteúdo e MIME type
+    let tipoConteudo = 'OFFICE';
+    let mimeType = 'application/octet-stream';
+    const extensao = path.extname(nomeArquivo).toLowerCase();
+    
+    if (['.txt'].includes(extensao)) {
+      tipoConteudo = 'TEXTO';
+      mimeType = 'text/plain';
+    } else if (['.pdf'].includes(extensao)) {
+      tipoConteudo = 'PDF';
+      mimeType = 'application/pdf';
+    } else if (['.mp4', '.avi', '.mov'].includes(extensao)) {
+      tipoConteudo = 'VIDEO';
+      mimeType = 'video/mp4';
+    } else if (['.jpg', '.jpeg'].includes(extensao)) {
+      tipoConteudo = 'IMAGEM';
+      mimeType = 'image/jpeg';
+    } else if (['.png'].includes(extensao)) {
+      tipoConteudo = 'IMAGEM';
+      mimeType = 'image/png';
+    } else if (['.gif'].includes(extensao)) {
+      tipoConteudo = 'IMAGEM';
+      mimeType = 'image/gif';
+    } else if (['.doc', '.docx'].includes(extensao)) {
+      tipoConteudo = 'OFFICE';
+      mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    } else if (['.xls', '.xlsx'].includes(extensao)) {
+      tipoConteudo = 'OFFICE';
+      mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    } else if (['.ppt', '.pptx'].includes(extensao)) {
+      tipoConteudo = 'OFFICE';
+      mimeType = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    }
+
+    // Criar um objeto File-like para o FormData
+    const arquivo = {
+      buffer: arquivoBuffer,
+      name: nomeArquivo,
+      type: mimeType
+    };
+
+    // Chamar a API para atualizar o conteúdo
+    const resultado = await atualizarConteudoTessela(
+      userId,
+      token,
+      proprietarioId,
+      tessela.id,
+      conteudo.id,
+      nomeArquivo,
+      tipoConteudo,
+      arquivo
+    );
+
+    if (resultado) {
+      await writeLog(`[UPDATE] Conteúdo atualizado com sucesso: ${nomeArquivo} na tessela ${nomeTessela}`);
+    } else {
+      await writeLog(`[UPDATE] Erro ao atualizar conteúdo: ${nomeArquivo}`);
+    }
+
+  } catch (error) {
+    await writeLog(`[UPDATE] Erro ao processar arquivo modificado ${filePath}: ${error.message}`);
+  }
 }
 
 module.exports = { startWatcher, pauseWatcher, resumeWatcher };

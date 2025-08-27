@@ -2,7 +2,7 @@ const axios = require('axios');
 const https = require('https');
 
 const API_CONFIG = {
-  baseURL: process.env.VITE_BASE_URL,
+  baseURL: process.env.VITE_BASE_URL || 'http://localhost:5000',
 
   // Endpoints
   endpoints: {
@@ -173,11 +173,93 @@ async function addMosaico(userId, token, proprietarioId, request) {
   }
 }
 
+async function atualizarConteudoTessela(userId, token, proprietarioId, tesselaId, conteudoId, nomeConteudo, tipo, arquivo) {
+  try {
+    const endpoint = `/tesselas/conteudo`;
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'user-id': userId
+    };
+    // Adicionar proprietario-id no header
+    if (proprietarioId) {
+      headers['proprietario-id'] = proprietarioId;
+    }
+
+    // Criar dados do formulário manualmente
+    const formData = new URLSearchParams();
+    formData.append('TesselaId', tesselaId);
+    formData.append('ConteudoId', conteudoId);
+    formData.append('NomeConteudo', nomeConteudo);
+    formData.append('Tipo', tipo);
+    
+    // Se tiver arquivo, usar multipart/form-data
+    if (arquivo && arquivo.buffer) {
+      // Criar FormData usando Buffer diretamente
+      const boundary = '----WebKitFormBoundary' + Math.random().toString(16).substr(2);
+      headers['Content-Type'] = `multipart/form-data; boundary=${boundary}`;
+      
+      // Construir o body como Buffer para preservar os dados binários
+      const parts = [];
+      
+      // Adicionar campos de texto
+      const addField = (name, value) => {
+        parts.push(Buffer.from(`--${boundary}\r\n`));
+        parts.push(Buffer.from(`Content-Disposition: form-data; name="${name}"\r\n\r\n`));
+        parts.push(Buffer.from(`${value}\r\n`));
+      };
+      
+      addField('TesselaId', tesselaId);
+      addField('ConteudoId', conteudoId);
+      addField('NomeConteudo', nomeConteudo);
+      addField('Tipo', tipo);
+      
+      // Adicionar arquivo
+      parts.push(Buffer.from(`--${boundary}\r\n`));
+      parts.push(Buffer.from(`Content-Disposition: form-data; name="Arquivo"; filename="${arquivo.name}"\r\n`));
+      parts.push(Buffer.from(`Content-Type: ${arquivo.type}\r\n\r\n`));
+      parts.push(arquivo.buffer);
+      parts.push(Buffer.from(`\r\n--${boundary}--\r\n`));
+      
+      // Concatenar todos os buffers
+      const body = Buffer.concat(parts);
+      
+      const response = await apiClient.put(endpoint, body, { 
+        headers,
+        transformRequest: [() => body], // Evitar transformação automática
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity
+      });
+      
+      if (response.data.data) {
+        return response.data.data;
+      } else {
+        return response.data;
+      }
+    } else {
+      // Para dados sem arquivo, usar application/x-www-form-urlencoded
+      headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      
+      const response = await apiClient.put(endpoint, formData.toString(), { headers });
+      
+      if (response.data.data) {
+        return response.data.data;
+      } else {
+        return response.data;
+      }
+    }
+    
+  } catch (error) {
+    console.error('[API] Erro ao atualizar conteúdo da tessela:', error);
+    return null;
+  }
+}
+
 module.exports = {
   API_CONFIG,
   getMosaicosBg,
   getMosaicoById,
   downloadConteudoTessela,
   addTessela,
-  addMosaico
+  addMosaico,
+  atualizarConteudoTessela
 };

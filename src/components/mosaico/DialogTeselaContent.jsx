@@ -408,6 +408,8 @@ export default function DialogTeselaContent({
       const result = await window.fileControls.open(filePath);
       if (result.success) {
         toast.success(t("tesselaModal.arquivoAbertoSucesso"));
+        SearchContent();
+        setItemSelecionado(null);
       } else {
         toast.error(`${t("tesselaModal.erroAbrirArquivo")}: ${result.message}`);
       }
