@@ -29,6 +29,8 @@ const createWindow = () => {
       webSecurity: false, // Permite conexões externas
       nodeIntegration: false,
       contextIsolation: true,
+      // Desabilitar DevTools em produção
+      devTools: !app.isPackaged,
     },
   });
   mainWindowRef = mainWindow;
@@ -83,8 +85,32 @@ const createWindow = () => {
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // Open the DevTools apenas em desenvolvimento
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools();
+  }
+
+  // Desabilitar atalhos de teclado para DevTools em produção
+  if (app.isPackaged) {
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+      // Bloquear F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+      if (input.key === 'F12' || 
+          (input.control && input.shift && (input.key === 'I' || input.key === 'J')) ||
+          (input.control && input.key === 'U')) {
+        event.preventDefault();
+      }
+    });
+
+    // Desabilitar menu de contexto (clique direito)
+    mainWindow.webContents.on('context-menu', (event) => {
+      event.preventDefault();
+    });
+
+    // Desabilitar DevTools via código
+    mainWindow.webContents.on('devtools-opened', () => {
+      mainWindow.webContents.closeDevTools();
+    });
+  }
 };
 
 // This method will be called when Electron has finished

@@ -53,9 +53,9 @@ module.exports = {
       '@': path.resolve(__dirname, 'src'),
     },
   },
-  // Habilitar source maps para debug
-  devtool: 'source-map',
-  mode: 'development',
+  // Habilitar source maps apenas em desenvolvimento
+  devtool: process.env.NODE_ENV === 'production' ? false : 'source-map',
+  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
   plugins: [
     new webpack.DefinePlugin(finalEnvDefine),
     new webpack.DefinePlugin({

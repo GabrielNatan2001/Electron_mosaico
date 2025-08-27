@@ -7,11 +7,11 @@
   "scripts": {
     "start": "electron-forge start",
     "start:debug": "cross-env NODE_OPTIONS=\"--inspect=5858\" electron-forge start",
-    "start:debug-brk": "cross-env NODE_OPTIONS=\"--inspect-brk=5858\" electron-forge start",
+    "start:debug-brk": "cross-env NODE_OPTIONS=\"--inspect-brk=5859\" electron-forge start",
     "start:debug-watcher": "cross-env NODE_OPTIONS=\"--inspect=5859\" node test-watcher.js",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
-    "publish": "electron-forge publish",
+    "package": "cross-env NODE_ENV=production electron-forge package",
+    "make": "cross-env NODE_ENV=production electron-forge make",
+    "publish": "cross-env NODE_ENV=production electron-forge publish",
     "lint": "echo \"No linting configured\""
   },
   "keywords": [],

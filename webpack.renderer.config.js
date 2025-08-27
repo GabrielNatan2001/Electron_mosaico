@@ -70,9 +70,9 @@ rules.push(
 );
 
 module.exports = {
-  // Habilitar source maps para debug
-  devtool: 'source-map',
-  mode: 'development',
+  // Habilitar source maps apenas em desenvolvimento
+  devtool: process.env.NODE_ENV === 'production' ? false : 'source-map',
+  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
   module: {
     rules,
   },
