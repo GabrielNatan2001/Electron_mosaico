@@ -340,6 +340,21 @@ export default function DialogTeselaContent({
         // Arquivo não existe, fazer o download primeiro
         toast.info(t("tesselaModal.arquivoNaoEncontradoSistema"));
         
+        // Pausar o watcher antes do download para evitar monitoramento
+        try {
+          // Pequeno delay para garantir que não haja eventos em andamento
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          const pauseResult = await window.watcherControls.pause();
+          if (pauseResult.success) {
+            console.log('Watcher pausado com sucesso antes do download');
+          } else {
+            console.warn('Watcher não foi pausado:', pauseResult.message);
+          }
+        } catch (pauseError) {
+          console.warn('Não foi possível pausar o watcher:', pauseError);
+        }
+        
         try {
           const response = await downloadConteudoTessela(url);
           
@@ -371,6 +386,21 @@ export default function DialogTeselaContent({
           toast.error(t("tesselaModal.erroBaixarArquivo"));
           console.error('Erro no download:', downloadError);
           return;
+        } finally {
+          // Retomar o watcher após o download (sucesso ou erro)
+          try {
+            // Pequeno delay para garantir que o arquivo seja completamente salvo
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            const resumeResult = await window.watcherControls.resume();
+            if (resumeResult.success) {
+              console.log('Watcher retomado com sucesso após o download');
+            } else {
+              console.warn('Watcher não foi retomado:', resumeResult.message);
+            }
+          } catch (resumeError) {
+            console.warn('Não foi possível retomar o watcher:', resumeError);
+          }
         }
       }
 

@@ -13,6 +13,9 @@ const mosaicosUsuario = [];
 let userId;;
 let token;
 let proprietarioId;
+let watcherInstance = null;
+let isWatcherPaused = false;
+let pausedEvents = [];
 
 function ObterPastaBase() {
   return path.join(os.homedir(), 'MosaicoElectron');
@@ -30,6 +33,12 @@ function isTemporaryFile(filePath) {
 }
 
 async function processQueue() {
+  // Se o watcher estiver pausado, não processar eventos
+  if (isWatcherPaused) {
+    console.log('[WATCHER] Fila não processada - watcher pausado');
+    return;
+  }
+
   const result = [];
   const usados = new Set();
 
@@ -135,7 +144,42 @@ setInterval(processQueue, TEMPO_FICA_PROCESSAR_EVENTOS_ALTERACOES_ARQUIVOS);
 
 // Adiciona evento à fila
 function queueEvent(identifier, path, type) {
+  // Se o watcher estiver pausado, não adicionar eventos à fila
+  if (isWatcherPaused) {
+    console.log(`[WATCHER] Evento ${type} ignorado - watcher pausado: ${path}`);
+    return;
+  }
+  
   listaEventoArquivos.push({ identifier, path, type, hora: Date.now() });
+}
+
+// Função para pausar o watcher
+function pauseWatcher() {
+  if (watcherInstance && !isWatcherPaused) {
+    isWatcherPaused = true;
+    
+    // Limpar a fila de eventos para evitar processamento de eventos antigos
+    const eventosRemovidos = listaEventoArquivos.length;
+    listaEventoArquivos.splice(0, listaEventoArquivos.length);
+    
+    // Limpar o mapa de identificadores para evitar referências a arquivos antigos
+    const pathsRemovidos = pathIdentifierMap.size;
+    pathIdentifierMap.clear();
+    
+    console.log(`[WATCHER] Watcher pausado temporariamente. ${eventosRemovidos} eventos e ${pathsRemovidos} paths removidos.`);
+    return true;
+  }
+  return false;
+}
+
+// Função para retomar o watcher
+function resumeWatcher() {
+  if (watcherInstance && isWatcherPaused) {
+    isWatcherPaused = false;
+    console.log('[WATCHER] Watcher retomado - monitoramento ativo novamente');
+    return true;
+  }
+  return false;
 }
 
 async function startWatcher(options = {}) {
@@ -160,30 +204,34 @@ async function startWatcher(options = {}) {
     usePolling: false, // Melhor performance,
     atomic: true
   });
+  
+  // Armazenar a instância do watcher para controle
+  watcherInstance = watcher;
 
   // ===== ARQUIVOS =====
   watcher.on('add', async (filePath, stats) => {
-    if (isTemporaryFile(filePath)) return;
+    if (isTemporaryFile(filePath) || isWatcherPaused) return;
     const identifier = stats ? stats.birthtimeMs : Date.now();
     pathIdentifierMap.set(filePath, identifier);
     queueEvent(identifier, filePath, 'add');
   });
 
   watcher.on('unlink', async (filePath) => {
-    if (isTemporaryFile(filePath)) return;
+    if (isTemporaryFile(filePath) || isWatcherPaused) return;
     const identifier = pathIdentifierMap.get(filePath) || Date.now();
     pathIdentifierMap.delete(filePath);
     queueEvent(identifier, filePath, 'unlink');
   });
 
   watcher.on('change', async (filePath, stats) => {
+    if (isWatcherPaused) return;
     const identifier = pathIdentifierMap.get(filePath) || (stats ? stats.birthtimeMs : Date.now());
     queueEvent(identifier, filePath, 'change');
   });
 
   // ===== PASTAS =====
   watcher.on('addDir', async (dirPath) => {
-    if (isTemporaryFile(dirPath)) return;
+    if (isTemporaryFile(dirPath) || isWatcherPaused) return;
     const stats = await fs.stat(dirPath);
     const identifier = stats.birthtimeMs;
     pathIdentifierMap.set(dirPath, identifier);
@@ -191,7 +239,7 @@ async function startWatcher(options = {}) {
   });
 
   watcher.on('unlinkDir', async (dirPath) => {
-    if (isTemporaryFile(dirPath)) return;
+    if (isTemporaryFile(dirPath) || isWatcherPaused) return;
     const identifier = pathIdentifierMap.get(dirPath) || Date.now();
     pathIdentifierMap.delete(dirPath);
     queueEvent(identifier, dirPath, 'unlinkDir');
@@ -391,4 +439,4 @@ function VerificaSePastaEhMosaico(caminho) {
   return (partes.length - (indiceUser + 1)) == 1; // se qtde == 1 então é mosaico, senão é tessela
 }
 
-module.exports = { startWatcher };
+module.exports = { startWatcher, pauseWatcher, resumeWatcher };

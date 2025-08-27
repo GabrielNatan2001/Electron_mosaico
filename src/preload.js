@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('windowControls', {
 contextBridge.exposeInMainWorld('watcherControls', {
   start: (userId, token, proprietarioId) => ipcRenderer.invoke('watcher:start', userId, token, proprietarioId),
   stop: () => ipcRenderer.invoke('watcher:stop'),
+  pause: () => ipcRenderer.invoke('watcher:pause'),
+  resume: () => ipcRenderer.invoke('watcher:resume'),
 });
 
 contextBridge.exposeInMainWorld('fileControls', {

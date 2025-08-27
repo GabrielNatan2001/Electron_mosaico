@@ -1,7 +1,7 @@
 const { app, BrowserWindow, session, ipcMain, shell } = require('electron');
 const path = require('node:path');
 require('dotenv').config();
-const { startWatcher } = require('./background/watcher');
+const { startWatcher, pauseWatcher, resumeWatcher } = require('./background/watcher');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -172,6 +172,28 @@ ipcMain.handle('file:exists', async (event, filePath) => {
     return { success: true, exists: exists };
   } catch (err) {
     console.error('[IPC] Erro ao verificar arquivo:', err);
+    return { success: false, message: err.message };
+  }
+});
+
+// Handler para pausar o watcher
+ipcMain.handle('watcher:pause', async (event) => {
+  try {
+    const result = pauseWatcher();
+    return { success: result, message: result ? 'Watcher pausado' : 'Watcher não pausado' };
+  } catch (err) {
+    console.error('[IPC] Erro ao pausar watcher:', err);
+    return { success: false, message: err.message };
+  }
+});
+
+// Handler para retomar o watcher
+ipcMain.handle('watcher:resume', async (event) => {
+  try {
+    const result = resumeWatcher();
+    return { success: result, message: result ? 'Watcher retomado' : 'Watcher não retomado' };
+  } catch (err) {
+    console.error('[IPC] Erro ao retomar watcher:', err);
     return { success: false, message: err.message };
   }
 });
