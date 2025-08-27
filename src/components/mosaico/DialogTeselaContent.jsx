@@ -3,6 +3,7 @@ import { DialogContent } from "@/components/ui/dialog";
 import YoutubePlayer from "./YoutubePlayer";
 import Mp4Player from "./Mp4Player";
 import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import {
   addConteutoTesela,
   adicionarMultiplosConteudos,
@@ -111,7 +112,7 @@ export default function DialogTeselaContent({
       }
       setTeselaConteudo(response);
     } catch (error) {
-      toast.error("Erro ao buscar conteúdos da tessela.");
+      toast.error(t("tesselaModal.erroBuscarConteudos"));
     } finally {
       setLoading(false);
     }
@@ -170,7 +171,7 @@ export default function DialogTeselaContent({
       SearchContent();
       setItemSelecionado(null);
     } catch ({ status, response: { data } }) {
-      toast.error(data?.message || "Erro ao adicionar conteúdo.");
+      toast.error(data?.message || t("tesselaModal.erroAdicionarConteudo"));
     }
   };
 
@@ -218,7 +219,7 @@ export default function DialogTeselaContent({
       }
       setEditandoImagem(false);
     } catch ({ status, response: { data } }) {
-      const errorMessage = data?.message || "Erro ao criar o mosaico.";
+      const errorMessage = data?.message || t("tesselaModal.erroCriarMosaico");
       toast.error(errorMessage);
     }
   };
@@ -270,7 +271,7 @@ export default function DialogTeselaContent({
       a.click();
       URL.revokeObjectURL(downloadUrl);
     } catch (error) {
-      toast.error('Erro ao baixar conteúdo', error);
+      toast.error(t("tesselaModal.erroBaixarConteudo"), error);
     }
   };
 
@@ -278,21 +279,21 @@ export default function DialogTeselaContent({
     try {
       // Só permite abrir arquivos que não são texto ou link
       if (["texto", "link"].includes(tipo?.toLowerCase())) {
-        toast.error('Não é possível abrir este tipo de conteúdo no sistema');
+        toast.error(t("tesselaModal.naoAbrirTipoConteudo"));
         return;
       }
 
       // Obter o caminho base dos arquivos do usuário
       const basePathResult = await window.fileControls.getBasePath(userId);
       if (!basePathResult.success) {
-        toast.error('Erro ao obter caminho dos arquivos');
+        toast.error(t("tesselaModal.erroObterCaminhoArquivos"));
         return;
       }
 
       // Extrair o nome do arquivo da URL
       const fileName = url.split('/').pop();
       if (!fileName) {
-        toast.error('Nome do arquivo não encontrado');
+        toast.error(t("tesselaModal.nomeArquivoNaoEncontrado"));
         return;
       }
 
@@ -321,23 +322,68 @@ export default function DialogTeselaContent({
 
       const tesselaName = tesselaConteudo.descricao || tesselaConteudo.label;
       if (!tesselaName) {
-        toast.error('Nome da tessela não encontrado');
+        toast.error(t("tesselaModal.nomeTesselaNaoEncontrado"));
         return;
       }
 
       const filePath = `${basePathResult.path}\\${mosaicoName}\\${tesselaName}\\${fileName}`;
-      console.log('Tentando abrir arquivo:', filePath);
-      
-      // Abrir o arquivo no sistema
+      console.log('Verificando arquivo:', filePath);
+
+      // Verificar se o arquivo existe no sistema
+      const fileExistsResult = await window.fileControls.exists(filePath);
+      if (!fileExistsResult.success) {
+        toast.error(t("tesselaModal.erroVerificarArquivoSistema"));
+        return;
+      }
+
+      if (!fileExistsResult.exists) {
+        // Arquivo não existe, fazer o download primeiro
+        toast.info(t("tesselaModal.arquivoNaoEncontradoSistema"));
+        
+        try {
+          const response = await downloadConteudoTessela(url);
+          
+          // Converter a resposta para ArrayBuffer que pode ser enviado via IPC
+          let arrayBuffer;
+          if (response.data instanceof ArrayBuffer) {
+            arrayBuffer = response.data;
+          } else if (response.data instanceof Uint8Array) {
+            arrayBuffer = response.data.buffer;
+          } else if (response.data instanceof Blob) {
+            arrayBuffer = await response.data.arrayBuffer();
+          } else {
+            // Se for outro tipo, tentar converter para ArrayBuffer
+            const blob = new Blob([response.data], {
+              type: response.headers['content-type'] || 'application/octet-stream',
+            });
+            arrayBuffer = await blob.arrayBuffer();
+          }
+
+          // Salvar o arquivo no sistema usando o IPC
+          const saveResult = await window.fileControls.saveFile(filePath, arrayBuffer);
+          if (!saveResult.success) {
+            toast.error(t("tesselaModal.erroSalvarArquivoSistema"));
+            return;
+          }
+
+          toast.success(t("tesselaModal.arquivoBaixadoSucesso"));
+        } catch (downloadError) {
+          toast.error(t("tesselaModal.erroBaixarArquivo"));
+          console.error('Erro no download:', downloadError);
+          return;
+        }
+      }
+
+      // Agora tentar abrir o arquivo
       const result = await window.fileControls.open(filePath);
       if (result.success) {
-        toast.success('Arquivo aberto com sucesso');
+        toast.success(t("tesselaModal.arquivoAbertoSucesso"));
       } else {
-        toast.error(`Erro ao abrir arquivo: ${result.message}`);
+        toast.error(`${t("tesselaModal.erroAbrirArquivo")}: ${result.message}`);
       }
     } catch (error) {
       console.error('Erro ao abrir arquivo:', error);
-      toast.error('Erro ao abrir arquivo no sistema');
+      toast.error(t("tesselaModal.erroAbrirArquivoSistema"));
     }
   };
 

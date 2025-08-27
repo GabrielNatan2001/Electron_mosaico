@@ -16,4 +16,6 @@ contextBridge.exposeInMainWorld('watcherControls', {
 contextBridge.exposeInMainWorld('fileControls', {
   open: (filePath) => ipcRenderer.invoke('file:open', filePath),
   getBasePath: (userId) => ipcRenderer.invoke('file:getBasePath', userId),
+  exists: (filePath) => ipcRenderer.invoke('file:exists', filePath),
+  saveFile: (filePath, buffer) => ipcRenderer.invoke('file:saveFile', filePath, buffer),
 });

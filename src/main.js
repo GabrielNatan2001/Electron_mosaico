@@ -55,29 +55,30 @@ const createWindow = () => {
   });
 
   // Configurar CSP para permitir conexões com a API e desenvolvimento
-session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-  const isDev = !app.isPackaged;
-  const devCsp = [
-    "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:",
-    "script-src * 'unsafe-inline' 'unsafe-eval'",
-    "style-src * 'unsafe-inline'",
-    "img-src * data: blob:",
-    "connect-src * ws: wss:",
-    "font-src * data:",
-    "media-src * data: blob:",
-    "frame-src *",
-    "object-src 'none'"
-  ].join('; ');
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const isDev = !app.isPackaged;
+    const devCsp = [
+      "default-src * data: blob: 'unsafe-inline' 'unsafe-eval'",
+      "script-src * data: blob: 'unsafe-inline' 'unsafe-eval'",
+      "worker-src * data: blob: 'unsafe-inline' 'unsafe-eval'",
+      "style-src * 'unsafe-inline' *",
+      "img-src * data: blob:",
+      "connect-src * ws: wss:",
+      "font-src * data:",
+      "media-src * data: blob:",
+      "frame-src *",
+      "object-src *"
+    ].join('; ');
 
-  const csp = devCsp;
+    const csp = devCsp;
 
-  callback({
-    responseHeaders: {
-      ...details.responseHeaders,
-      'Content-Security-Policy': [csp]
-    }
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [csp]
+      }
+    });
   });
-});
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
@@ -89,7 +90,9 @@ session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  await session.defaultSession.clearCache();
+  await session.defaultSession.clearStorageData();
   createWindow();
 
   // Removido: Inicialização automática do watcher
@@ -107,7 +110,7 @@ app.whenReady().then(() => {
 // Handlers IPC para controlar o watcher
 ipcMain.handle('watcher:start', async (event, userId, token = null, proprietarioId = null) => {
   console.log('[IPC] watcher:start chamado com userId:', userId, 'token:', !!token, 'proprietarioId:', proprietarioId);
-  
+
   try {
     // Parar watcher existente se houver
     if (watcherRef && typeof watcherRef.close === 'function') {
@@ -123,7 +126,7 @@ ipcMain.handle('watcher:start', async (event, userId, token = null, proprietario
     console.log('[IPC] userId:', userId);
     console.log('[IPC] token disponível:', !!token);
     console.log('[IPC] proprietarioId:', proprietarioId);
-    
+
     watcherRef = await startWatcher({
       logDir,
       userId, // Passar userId para o watcher
@@ -133,7 +136,7 @@ ipcMain.handle('watcher:start', async (event, userId, token = null, proprietario
         console.log('[watcher]', line.trim());
       }
     });
-    
+
     console.log('[IPC] Watcher iniciado com sucesso para usuário:', userId);
     return { success: true, message: 'Watcher iniciado com sucesso' };
   } catch (err) {
@@ -146,10 +149,66 @@ ipcMain.handle('watcher:start', async (event, userId, token = null, proprietario
 ipcMain.handle('file:open', async (event, filePath) => {
   try {
     console.log('[IPC] Tentando abrir arquivo:', filePath);
+    
+    // Verificar se o arquivo existe antes de tentar abrir
+    const fs = require('node:fs');
+    if (!fs.existsSync(filePath)) {
+      return { success: false, message: 'Arquivo não encontrado no sistema' };
+    }
+    
     await shell.openPath(filePath);
     return { success: true, message: 'Arquivo aberto com sucesso' };
   } catch (err) {
     console.error('[IPC] Erro ao abrir arquivo:', err);
+    return { success: false, message: err.message };
+  }
+});
+
+// Handler para verificar se arquivo existe
+ipcMain.handle('file:exists', async (event, filePath) => {
+  try {
+    const fs = require('node:fs');
+    const exists = fs.existsSync(filePath);
+    return { success: true, exists: exists };
+  } catch (err) {
+    console.error('[IPC] Erro ao verificar arquivo:', err);
+    return { success: false, message: err.message };
+  }
+});
+
+// Handler para salvar arquivo no sistema
+ipcMain.handle('file:saveFile', async (event, filePath, arrayBuffer) => {
+  try {
+    console.log('[IPC] Salvando arquivo:', filePath);
+    
+    const fs = require('node:fs');
+    const path = require('node:path');
+    
+    // Garantir que o diretório existe
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    
+    // Converter ArrayBuffer para Buffer do Node.js
+    let fileBuffer;
+    if (arrayBuffer instanceof ArrayBuffer) {
+      fileBuffer = Buffer.from(arrayBuffer);
+    } else if (arrayBuffer instanceof Uint8Array) {
+      fileBuffer = Buffer.from(arrayBuffer);
+    } else if (Buffer.isBuffer(arrayBuffer)) {
+      fileBuffer = arrayBuffer;
+    } else {
+      // Se for outro tipo, tentar converter
+      fileBuffer = Buffer.from(arrayBuffer);
+    }
+    
+    // Salvar o arquivo
+    fs.writeFileSync(filePath, fileBuffer);
+    
+    return { success: true, message: 'Arquivo salvo com sucesso' };
+  } catch (err) {
+    console.error('[IPC] Erro ao salvar arquivo:', err);
     return { success: false, message: err.message };
   }
 });
