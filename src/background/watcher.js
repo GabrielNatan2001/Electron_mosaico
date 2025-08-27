@@ -4,7 +4,7 @@ const os = require('node:os');
 const chokidar = require('chokidar');
 
 // Importar configuração da API
-const { getMosaicosBg, getMosaicoById, downloadConteudoTessela, addTessela, addMosaico, atualizarConteudoTessela } = require('./api-config');
+const { getMosaicosBg, getMosaicoById, downloadConteudoTessela, addTessela, addMosaico, atualizarConteudoTessela, downloadConteudoTesselaBackground } = require('./api-config');
 
 const TEMPO_FICA_PROCESSAR_EVENTOS_ALTERACOES_ARQUIVOS = 10000; //ms
 const listaEventoArquivos = [];
@@ -142,7 +142,7 @@ async function processQueue() {
 }
 
 // Timer para processar fila periodicamente
-setInterval(processQueue, TEMPO_FICA_PROCESSAR_EVENTOS_ALTERACOES_ARQUIVOS);
+//setInterval(processQueue, TEMPO_FICA_PROCESSAR_EVENTOS_ALTERACOES_ARQUIVOS);
 
 // Adiciona evento à fila
 function queueEvent(identifier, path, type) {
@@ -151,7 +151,7 @@ function queueEvent(identifier, path, type) {
     console.log(`[WATCHER] Evento ${type} ignorado - watcher pausado: ${path}`);
     return;
   }
-  
+
   listaEventoArquivos.push({ identifier, path, type, hora: Date.now() });
 }
 
@@ -159,15 +159,15 @@ function queueEvent(identifier, path, type) {
 function pauseWatcher() {
   if (watcherInstance && !isWatcherPaused) {
     isWatcherPaused = true;
-    
+
     // Limpar a fila de eventos para evitar processamento de eventos antigos
     const eventosRemovidos = listaEventoArquivos.length;
     listaEventoArquivos.splice(0, listaEventoArquivos.length);
-    
+
     // Limpar o mapa de identificadores para evitar referências a arquivos antigos
     const pathsRemovidos = pathIdentifierMap.size;
     pathIdentifierMap.clear();
-    
+
     console.log(`[WATCHER] Watcher pausado temporariamente. ${eventosRemovidos} eventos e ${pathsRemovidos} paths removidos.`);
     return true;
   }
@@ -182,6 +182,50 @@ function resumeWatcher() {
     return true;
   }
   return false;
+}
+
+// Função para recarregar mosaicos do usuário
+async function recarregarMosaicos() {
+  try {
+    await writeLog('[RELOAD] Recarregando mosaicos do usuário...');
+
+    // Limpar mosaicos existentes
+    mosaicosUsuario.length = 0;
+
+    // Pausar o watcher temporariamente
+    pauseWatcher();
+
+    const pastaBase = ObterPastaBase();
+    const directoryToWatch = await CriarPastaMosaico(userId, pastaBase);
+
+    // Buscar mosaicos atualizados
+    await buscarMosaicosECriarArquivos(userId, token, proprietarioId, directoryToWatch);
+
+    // Retomar o watcher
+    resumeWatcher();
+
+    await writeLog('[RELOAD] Mosaicos recarregados com sucesso');
+
+    // Notificar o frontend sobre a atualização
+    if (mainWindowRef && !mainWindowRef.isDestroyed()) {
+      try {
+        mainWindowRef.webContents.send('mosaicos:reloaded', {
+          timestamp: Date.now(),
+          totalMosaicos: mosaicosUsuario.length
+        });
+        console.log('[WATCHER] Notificação de mosaicos recarregados enviada para frontend');
+      } catch (error) {
+        console.error('[WATCHER] Erro ao enviar notificação de mosaicos recarregados:', error);
+      }
+    }
+
+    return true;
+  } catch (error) {
+    await writeLog(`[RELOAD] Erro ao recarregar mosaicos: ${error.message}`);
+    // Retomar o watcher mesmo em caso de erro
+    resumeWatcher();
+    return false;
+  }
 }
 
 async function startWatcher(options = {}) {
@@ -207,7 +251,7 @@ async function startWatcher(options = {}) {
     usePolling: false, // Melhor performance,
     atomic: true
   });
-  
+
   // Armazenar a instância do watcher para controle
   watcherInstance = watcher;
 
@@ -324,6 +368,7 @@ async function buscarMosaicosECriarArquivos(userId, token, proprietarioId, pasta
         const mosaicos = await getMosaicosBg(userId, token, proprietarioId);
 
         if (mosaicos.length > 0) {
+          mosaicosUsuario.splice(0, mosaicosUsuario.length);
           for (const mosaico of mosaicos) {
             try {
               const pastaMosaicoDoUsuario = path.join(pastaUsuario, mosaico.nome);
@@ -366,9 +411,13 @@ async function ObterTesselasPorMosaidoId(userId, token, proprietarioId, mosaidoI
           if (['OFFICE'].includes(conteudo.tipo?.toUpperCase())) {
             var nomeArquivo = conteudo.url.split('/').pop();
             var caminhoArquivo = path.join(pastaTessela, nomeArquivo);
-            var conteudoArquivo = await downloadConteudoTessela(userId, token, proprietarioId, conteudo.url);
+            await writeLog(`[API] dados api userid: ${userId}, token: ${token}, proprietarioId: ${proprietarioId}, url: ${conteudo.url}`);
+            var conteudoArquivo = await downloadConteudoTesselaBackground(userId, token, proprietarioId, conteudo.url);
+            await writeLog(`[API] Erro ao baixar conteúdo da tessela ${conteudoArquivo}`);
+            if (conteudoArquivo.length > 0) {
+              await fs.writeFile(caminhoArquivo, conteudoArquivo);
+            }
 
-            await fs.writeFile(caminhoArquivo, conteudoArquivo);
           }
         } catch (error) {
           await writeLog(`[API] Erro ao baixar conteúdo da tessela ${tessela.nome}: ${error.message}`);
@@ -454,7 +503,7 @@ async function atualizarArquivoModificado(filePath) {
     // Extrair informações do caminho do arquivo
     const partes = filePath.split(path.sep);
     const indiceUser = partes.findIndex(p => p.startsWith("user_"));
-    
+
     if (indiceUser === -1) {
       await writeLog(`[UPDATE] Caminho inválido para atualização: ${filePath}`);
       return;
@@ -495,7 +544,7 @@ async function atualizarArquivoModificado(filePath) {
       // Se não tiver URL, verificar pelo nome
       return c.nome === nomeArquivo;
     });
-
+    await writeLog(`[UPDATE] mosaicosUsuario: ${JSON.stringify(mosaicosUsuario)}`);
     if (!conteudo) {
       await writeLog(`[UPDATE] Conteúdo não encontrado para arquivo: ${nomeArquivo}`);
       return;
@@ -503,12 +552,12 @@ async function atualizarArquivoModificado(filePath) {
 
     // Ler o arquivo modificado
     const arquivoBuffer = await fs.readFile(filePath);
-    
+
     // Determinar o tipo de conteúdo e MIME type
     let tipoConteudo = 'OFFICE';
     let mimeType = 'application/octet-stream';
     const extensao = path.extname(nomeArquivo).toLowerCase();
-    
+
     if (['.txt'].includes(extensao)) {
       tipoConteudo = 'TEXTO';
       mimeType = 'text/plain';
@@ -560,6 +609,10 @@ async function atualizarArquivoModificado(filePath) {
     if (resultado) {
       await writeLog(`[UPDATE] Conteúdo atualizado com sucesso: ${nomeArquivo} na tessela ${nomeTessela}`);
       console.log(`[WATCHER] Tentando notificar frontend sobre atualização: mosaico=${mosaico.id}, tessela=${tessela.id}, conteudo=${conteudo.id}`);
+
+      const pastaUsuario = path.join(ObterPastaBase(), `user_${userId}`);
+      await buscarMosaicosECriarArquivos(userId, token, proprietarioId, pastaUsuario);
+      await writeLog(`[UPDATE] mosaicos ${JSON.stringify(mosaicosUsuario)}`);
       notifyContentUpdate(mosaico.id, tessela.id, conteudo.id, nomeArquivo);
     } else {
       await writeLog(`[UPDATE] Erro ao atualizar conteúdo: ${nomeArquivo}`);
@@ -574,7 +627,7 @@ async function atualizarArquivoModificado(filePath) {
 function notifyContentUpdate(mosaicoId, tesselaId, conteudoId, nomeArquivo) {
   console.log(`[WATCHER] notifyContentUpdate chamada com: mosaicoId=${mosaicoId}, tesselaId=${tesselaId}, conteudoId=${conteudoId}, nomeArquivo=${nomeArquivo}`);
   console.log(`[WATCHER] mainWindowRef existe: ${!!mainWindowRef}`);
-  
+
   if (mainWindowRef && !mainWindowRef.isDestroyed()) {
     console.log(`[WATCHER] mainWindow não está destruída, enviando notificação...`);
     try {
@@ -594,4 +647,4 @@ function notifyContentUpdate(mosaicoId, tesselaId, conteudoId, nomeArquivo) {
   }
 }
 
-module.exports = { startWatcher, pauseWatcher, resumeWatcher };
+module.exports = { startWatcher, pauseWatcher, resumeWatcher, recarregarMosaicos };

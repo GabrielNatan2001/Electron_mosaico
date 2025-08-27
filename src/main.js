@@ -1,7 +1,7 @@
 const { app, BrowserWindow, session, ipcMain, shell } = require('electron');
 const path = require('node:path');
 require('dotenv').config();
-const { startWatcher, pauseWatcher, resumeWatcher } = require('./background/watcher');
+const { startWatcher, pauseWatcher, resumeWatcher, recarregarMosaicos } = require('./background/watcher');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -195,6 +195,18 @@ ipcMain.handle('watcher:resume', async (event) => {
     return { success: result, message: result ? 'Watcher retomado' : 'Watcher não retomado' };
   } catch (err) {
     console.error('[IPC] Erro ao retomar watcher:', err);
+    return { success: false, message: err.message };
+  }
+});
+
+// Handler para recarregar mosaicos do usuário
+ipcMain.handle('watcher:reload-mosaicos', async (event) => {
+  try {
+    console.log('[IPC] Recarregando mosaicos do usuário...');
+    const result = await recarregarMosaicos();
+    return { success: result, message: result ? 'Mosaicos recarregados com sucesso' : 'Erro ao recarregar mosaicos' };
+  } catch (err) {
+    console.error('[IPC] Erro ao recarregar mosaicos:', err);
     return { success: false, message: err.message };
   }
 });

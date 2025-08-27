@@ -197,6 +197,17 @@ export default function DialogTeselaContent({
         }
 
         await adicionarMultiplosConteudos(formConteudo);
+        
+        // Recarregar mosaicos no watcher para sincronizar com os novos conteúdos
+        try {
+          if (window.watcherControls && window.watcherControls.reloadMosaicos) {
+            await window.watcherControls.reloadMosaicos();
+            console.log('[TESSELA] Mosaicos recarregados após adicionar múltiplos conteúdos');
+          }
+        } catch (error) {
+          console.warn('[TESSELA] Erro ao recarregar mosaicos:', error);
+        }
+        
         SearchContent();
         setItemSelecionado(null);
         return;
@@ -212,6 +223,17 @@ export default function DialogTeselaContent({
       }
 
       await addConteutoTesela(formConteudo);
+      
+      // Recarregar mosaicos no watcher para sincronizar com o novo conteúdo
+      try {
+        if (window.watcherControls && window.watcherControls.reloadMosaicos) {
+          await window.watcherControls.reloadMosaicos();
+          console.log('[TESSELA] Mosaicos recarregados após adicionar conteúdo');
+        }
+      } catch (error) {
+        console.warn('[TESSELA] Erro ao recarregar mosaicos:', error);
+      }
+      
       SearchContent();
       setItemSelecionado(null);
     } catch ({ status, response: { data } }) {
@@ -327,6 +349,7 @@ export default function DialogTeselaContent({
         return;
       }
 
+      console.log('url', url);
       // Obter o caminho base dos arquivos do usuário
       const basePathResult = await window.fileControls.getBasePath(userId);
       if (!basePathResult.success) {
@@ -382,7 +405,7 @@ export default function DialogTeselaContent({
 
       if (!fileExistsResult.exists) {
         // Arquivo não existe, fazer o download primeiro
-        toast.info(t("tesselaModal.arquivoNaoEncontradoSistema"));
+        //toast.info(t("tesselaModal.arquivoNaoEncontradoSistema"));
         
         // Pausar o watcher antes do download para evitar monitoramento
         try {
@@ -417,7 +440,7 @@ export default function DialogTeselaContent({
             });
             arrayBuffer = await blob.arrayBuffer();
           }
-
+          console.log('filePath', filePath);
           // Salvar o arquivo no sistema usando o IPC
           const saveResult = await window.fileControls.saveFile(filePath, arrayBuffer);
           if (!saveResult.success) {
@@ -425,7 +448,7 @@ export default function DialogTeselaContent({
             return;
           }
 
-          toast.success(t("tesselaModal.arquivoBaixadoSucesso"));
+          //toast.success(t("tesselaModal.arquivoBaixadoSucesso"));
         } catch (downloadError) {
           toast.error(t("tesselaModal.erroBaixarArquivo"));
           console.error('Erro no download:', downloadError);
@@ -434,7 +457,7 @@ export default function DialogTeselaContent({
           // Retomar o watcher após o download (sucesso ou erro)
           try {
             // Pequeno delay para garantir que o arquivo seja completamente salvo
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 500));
             
             const resumeResult = await window.watcherControls.resume();
             if (resumeResult.success) {
@@ -452,8 +475,6 @@ export default function DialogTeselaContent({
       const result = await window.fileControls.open(filePath);
       if (result.success) {
         toast.success(t("tesselaModal.arquivoAbertoSucesso"));
-        //SearchContent();
-        //setItemSelecionado(null);
       } else {
         toast.error(`${t("tesselaModal.erroAbrirArquivo")}: ${result.message}`);
       }
