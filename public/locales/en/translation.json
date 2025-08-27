@@ -202,6 +202,7 @@
   },
   "tesselaModal": {
     "downloadFile": "Download content",
+    "openInSystem": "Open in System",
     "arquivo": "File",
     "multiplosConteudos": "Multiple contents",
     "deletarConteudo": "Delete content",

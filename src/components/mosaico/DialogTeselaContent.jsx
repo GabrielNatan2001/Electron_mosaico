@@ -12,7 +12,7 @@ import {
   getTeselaById,
   updateDataTessela,
 } from "@/api/services/teselaService";
-import { ArrowLeft, Pencil, Trash, Plus, Loader2, Download } from "lucide-react";
+import { ArrowLeft, Pencil, Trash, Plus, Loader2, Download, FolderOpen } from "lucide-react";
 import { DeleteTesselaModal } from "./DeleteTesselaModal";
 import AddTesselaContentModal from "./AddTesselaContentModal";
 import { toast } from "react-toastify";
@@ -57,7 +57,7 @@ export default function DialogTeselaContent({
   const [indiceSelecionado, setIndiceSelecionado] = useState(0);
   const [loadingDeleteContent, setLoadingDeleteContent] = useState(false);
 
-  const { mosaicos, proprietarioId } = useAuth();
+  const { mosaicos, proprietarioId, userId } = useAuth();
   const { id: mosaicoId } = useParams();
   const location = useLocation();
   const irParaProximo = () => {
@@ -274,6 +274,73 @@ export default function DialogTeselaContent({
     }
   };
 
+  const handleOpenFileInSystem = async (url, tipo) => {
+    try {
+      // Só permite abrir arquivos que não são texto ou link
+      if (["texto", "link"].includes(tipo?.toLowerCase())) {
+        toast.error('Não é possível abrir este tipo de conteúdo no sistema');
+        return;
+      }
+
+      // Obter o caminho base dos arquivos do usuário
+      const basePathResult = await window.fileControls.getBasePath(userId);
+      if (!basePathResult.success) {
+        toast.error('Erro ao obter caminho dos arquivos');
+        return;
+      }
+
+      // Extrair o nome do arquivo da URL
+      const fileName = url.split('/').pop();
+      if (!fileName) {
+        toast.error('Nome do arquivo não encontrado');
+        return;
+      }
+
+      // Construir o caminho completo do arquivo
+      // O arquivo está na pasta do mosaico > pasta da tessela > nome do arquivo
+      let mosaicoName = '';
+
+      // Tentar encontrar o nome do mosaico pelos mosaicos disponíveis
+      if (tesselaConteudo.mosaicoId && mosaicos) {
+        const mosaico = mosaicos.find(m => m.id === tesselaConteudo.mosaicoId);
+        mosaicoName = mosaico?.nome;
+      }
+
+      // Se não encontrou, tentar extrair da URL ou usar um valor padrão
+      if (!mosaicoName) {
+        // Tentar extrair da URL atual
+        const pathParts = location.pathname.split('/');
+        const mosaicoIndex = pathParts.findIndex(part => part === 'mosaico');
+        if (mosaicoIndex !== -1 && pathParts[mosaicoIndex + 1]) {
+          mosaicoName = pathParts[mosaicoIndex + 1];
+        } else {
+          // Valor padrão se não conseguir determinar
+          mosaicoName = 'mosaico';
+        }
+      }
+
+      const tesselaName = tesselaConteudo.descricao || tesselaConteudo.label;
+      if (!tesselaName) {
+        toast.error('Nome da tessela não encontrado');
+        return;
+      }
+
+      const filePath = `${basePathResult.path}\\${mosaicoName}\\${tesselaName}\\${fileName}`;
+      console.log('Tentando abrir arquivo:', filePath);
+      
+      // Abrir o arquivo no sistema
+      const result = await window.fileControls.open(filePath);
+      if (result.success) {
+        toast.success('Arquivo aberto com sucesso');
+      } else {
+        toast.error(`Erro ao abrir arquivo: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Erro ao abrir arquivo:', error);
+      toast.error('Erro ao abrir arquivo no sistema');
+    }
+  };
+
   return (
     <>
       <DialogContent className="min-w-[90%] !max-w-[90%] max-h-[90%] h-full p-0 rounded-lg overflow-hidden flex flex-col shadow-xl text-white bg-gradient-to-r from-[#25314d] via-[#2e3e5c] to-[#1f2a40]">
@@ -340,13 +407,23 @@ export default function DialogTeselaContent({
                 </button>
 
                 {!["texto", "link"].includes(itemSelecionado.tipo?.toLowerCase()) && (
-                  <button
-                    className="cursor-pointer flex items-center gap-0.5 text-sm text-blue-400 hover:text-blue-300"
-                    onClick={() => handleDownloadConteudo(itemSelecionado.url)}
-                  >
-                    <Download className="w-4 h-4" />
-                    {t("tesselaModal.downloadFile")}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="cursor-pointer flex items-center gap-0.5 text-sm text-blue-400 hover:text-blue-300"
+                      onClick={() => handleDownloadConteudo(itemSelecionado.url)}
+                    >
+                      <Download className="w-4 h-4" />
+                      {t("tesselaModal.downloadFile")}
+                    </button>
+
+                    <button
+                      className="cursor-pointer flex items-center gap-0.5 text-sm text-green-400 hover:text-green-300"
+                      onClick={() => handleOpenFileInSystem(itemSelecionado.url, itemSelecionado.tipo)}
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                      {t("tesselaModal.openInSystem")}
+                    </button>
+                  </div>
                 )}
 
                 {!noEditableState && (

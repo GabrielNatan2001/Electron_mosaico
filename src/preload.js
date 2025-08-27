@@ -12,3 +12,8 @@ contextBridge.exposeInMainWorld('watcherControls', {
   start: (userId, token, proprietarioId) => ipcRenderer.invoke('watcher:start', userId, token, proprietarioId),
   stop: () => ipcRenderer.invoke('watcher:stop'),
 });
+
+contextBridge.exposeInMainWorld('fileControls', {
+  open: (filePath) => ipcRenderer.invoke('file:open', filePath),
+  getBasePath: (userId) => ipcRenderer.invoke('file:getBasePath', userId),
+});

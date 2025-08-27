@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, ipcMain } = require('electron');
+const { app, BrowserWindow, session, ipcMain, shell } = require('electron');
 const path = require('node:path');
 require('dotenv').config();
 const { startWatcher } = require('./background/watcher');
@@ -138,6 +138,31 @@ ipcMain.handle('watcher:start', async (event, userId, token = null, proprietario
     return { success: true, message: 'Watcher iniciado com sucesso' };
   } catch (err) {
     console.error('[IPC] Erro ao iniciar watcher:', err);
+    return { success: false, message: err.message };
+  }
+});
+
+// Handler para abrir arquivos no sistema
+ipcMain.handle('file:open', async (event, filePath) => {
+  try {
+    console.log('[IPC] Tentando abrir arquivo:', filePath);
+    await shell.openPath(filePath);
+    return { success: true, message: 'Arquivo aberto com sucesso' };
+  } catch (err) {
+    console.error('[IPC] Erro ao abrir arquivo:', err);
+    return { success: false, message: err.message };
+  }
+});
+
+// Handler para obter o caminho base dos arquivos do usuário
+ipcMain.handle('file:getBasePath', async (event, userId) => {
+  try {
+    const os = require('node:os');
+    const path = require('node:path');
+    const basePath = path.join(os.homedir(), 'MosaicoElectron', `user_${userId}`);
+    return { success: true, path: basePath };
+  } catch (err) {
+    console.error('[IPC] Erro ao obter caminho base:', err);
     return { success: false, message: err.message };
   }
 });
