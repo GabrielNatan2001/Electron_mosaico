@@ -1,57 +1,45 @@
-// Arquivo de teste para debug do watcher
-require('dotenv').config(); // Carregar variáveis do .env
+// Teste para verificar se as notificações do watcher estão funcionando
 const { startWatcher } = require('./src/background/watcher');
-const testConfig = require('./test-config'); // Carregar configuração de teste
 
-async function testWatcher() {
-  console.log('Iniciando teste do watcher...');
-  
-  // Carregar variáveis do .env
-  const envConfig = {
-    baseURL: testConfig.api.baseURL,
-    environment: testConfig.api.environment,
-    debug: testConfig.api.debug,
-    logLevel: testConfig.api.logLevel
-  };
-  
-  console.log('Configuração do .env:', envConfig);
-  console.log('Configuração de teste:', testConfig.test);
+// Mock da janela principal
+const mockMainWindow = {
+  webContents: {
+    send: (event, data) => {
+      console.log(`[TEST] Evento enviado: ${event}`, data);
+    }
+  },
+  isDestroyed: () => false
+};
+
+// Teste da função notifyContentUpdate
+async function testWatcherNotifications() {
+  console.log('[TEST] Iniciando teste do watcher...');
   
   try {
-    // Simular opções como se fossem do Electron
-    const options = {
-      userId: testConfig.test.userId,
-      token: testConfig.test.token,
-      proprietarioId: testConfig.test.proprietarioId,
-      logDir: testConfig.test.logDir,
-      onLog: (line) => console.log('[LOG]', line.trim())
-    };
+    // Iniciar watcher com mock da janela
+    const watcher = await startWatcher({
+      userId: 'test-user',
+      token: 'test-token',
+      proprietarioId: 'test-proprietario',
+      mainWindow: mockMainWindow
+    });
     
-    console.log('Opções de teste:', options);
+    console.log('[TEST] Watcher iniciado com sucesso');
     
-    // Chamar o watcher
-    const watcher = await startWatcher(options);
+    // Simular uma atualização de conteúdo
+    console.log('[TEST] Simulando atualização de conteúdo...');
     
-    console.log('Watcher iniciado com sucesso!');
-    
-    // Simular algumas operações
-    const timeout = testConfig.test.timeout;
-    console.log(`Teste rodando por ${timeout}ms...`);
-    
-    setTimeout(() => {
-      console.log('Teste concluído!');
-      if (watcher && typeof watcher.close === 'function') {
-        watcher.close();
-        console.log('Watcher fechado.');
-      }
-      process.exit(0);
-    }, timeout);
+    // Aqui você pode simular a modificação de um arquivo
+    // O watcher deve detectar e enviar a notificação
     
   } catch (error) {
-    console.error('Erro ao testar watcher:', error);
-    process.exit(1);
+    console.error('[TEST] Erro no teste:', error);
   }
 }
 
-// Executar o teste
-testWatcher();
+// Executar teste se este arquivo for executado diretamente
+if (require.main === module) {
+  testWatcherNotifications();
+}
+
+module.exports = { testWatcherNotifications };

@@ -132,6 +132,7 @@ ipcMain.handle('watcher:start', async (event, userId, token = null, proprietario
       userId, // Passar userId para o watcher
       token,  // Passar token para o watcher
       proprietarioId, // Passar proprietarioId para o watcher
+      mainWindow: mainWindowRef, // Passar referência da janela principal
       onLog: (line) => {
         console.log('[watcher]', line.trim());
       }

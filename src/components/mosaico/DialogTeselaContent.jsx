@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { DialogContent } from "@/components/ui/dialog";
 import YoutubePlayer from "./YoutubePlayer";
 import Mp4Player from "./Mp4Player";
@@ -97,7 +97,7 @@ export default function DialogTeselaContent({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [indiceSelecionado, tesselaConteudo]);
 
-  const SearchContent = async () => {
+  const SearchContent = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -116,14 +116,58 @@ export default function DialogTeselaContent({
     } finally {
       setLoading(false);
     }
-  };
+  }, [data.teselaId, location.pathname, t]);
 
   useEffect(() => {
     if (open) {
       SearchContent();
       setItemSelecionado(null);
     }
-  }, [open, data.teselaId]);
+  }, [open, data.teselaId, SearchContent]);
+
+  // Listener para notificações de conteúdo atualizado do watcher
+  useEffect(() => {
+    if (!open || !data.teselaId) return;
+
+    console.log(`[DIALOG] Registrando listener para tessela: ${data.teselaId}`);
+
+    const handleContentUpdated = (event, notificationData) => {
+      console.log(`[DIALOG] Notificação recebida:`, notificationData);
+      console.log(`[DIALOG] Tessela atual: ${data.teselaId}, Tessela da notificação: ${notificationData.tesselaId}`);
+      
+      // Verificar se a notificação é para a tessela atual
+      if (notificationData.tesselaId === data.teselaId) {
+        console.log('Conteúdo atualizado detectado, recarregando tessela...');
+        // Recarregar os conteúdos da tessela
+        SearchContent();
+        // Se estiver visualizando um conteúdo específico, verificar se ele foi atualizado
+        if (itemSelecionado && notificationData.conteudoId === itemSelecionado.id) {
+          // Atualizar o item selecionado com os novos dados
+          setItemSelecionado(null);
+        }
+      } else {
+        console.log(`[DIALOG] Notificação não é para esta tessela`);
+      }
+    };
+
+    // Registrar o listener
+    try {
+      window.watcherControls.onContentUpdated(handleContentUpdated);
+      console.log(`[DIALOG] Listener registrado com sucesso`);
+    } catch (error) {
+      console.error(`[DIALOG] Erro ao registrar listener:`, error);
+    }
+
+    // Cleanup: remover o listener quando o modal for fechado
+    return () => {
+      try {
+        window.watcherControls.removeContentUpdatedListener();
+        console.log(`[DIALOG] Listener removido`);
+      } catch (error) {
+        console.error(`[DIALOG] Erro ao remover listener:`, error);
+      }
+    };
+  }, [open, data.teselaId, itemSelecionado, SearchContent]);
 
   useEffect(() => {
     setEditLabel(tesselaConteudo.label || "");
@@ -408,8 +452,8 @@ export default function DialogTeselaContent({
       const result = await window.fileControls.open(filePath);
       if (result.success) {
         toast.success(t("tesselaModal.arquivoAbertoSucesso"));
-        SearchContent();
-        setItemSelecionado(null);
+        //SearchContent();
+        //setItemSelecionado(null);
       } else {
         toast.error(`${t("tesselaModal.erroAbrirArquivo")}: ${result.message}`);
       }

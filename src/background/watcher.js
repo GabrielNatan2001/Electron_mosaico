@@ -16,6 +16,7 @@ let proprietarioId;
 let watcherInstance = null;
 let isWatcherPaused = false;
 let pausedEvents = [];
+let mainWindowRef = null; // Referência para a janela principal
 
 function ObterPastaBase() {
   return path.join(os.homedir(), 'MosaicoElectron');
@@ -188,6 +189,7 @@ async function startWatcher(options = {}) {
   userId = options.userId;
   token = options.token;
   proprietarioId = options.proprietarioId;
+  mainWindowRef = options.mainWindow; // Receber referência da janela principal
 
   if (!userId) {
     throw new Error('userId é obrigatório para iniciar o watcher');
@@ -226,8 +228,10 @@ async function startWatcher(options = {}) {
 
   watcher.on('change', async (filePath, stats) => {
     if (isWatcherPaused) return;
-    const identifier = pathIdentifierMap.get(filePath) || (stats ? stats.birthtimeMs : Date.now());
-    queueEvent(identifier, filePath, 'change');
+    //const identifier = pathIdentifierMap.get(filePath) || (stats ? stats.birthtimeMs : Date.now());
+    //queueEvent(identifier, filePath, 'change');
+    //await writeLog(`[CHANGE] ARQUIVO MODIFICADO: ${event.path} - identifier: ${event.identifier}`);
+    await atualizarArquivoModificado(filePath);
   });
 
   // ===== PASTAS =====
@@ -555,12 +559,38 @@ async function atualizarArquivoModificado(filePath) {
 
     if (resultado) {
       await writeLog(`[UPDATE] Conteúdo atualizado com sucesso: ${nomeArquivo} na tessela ${nomeTessela}`);
+      console.log(`[WATCHER] Tentando notificar frontend sobre atualização: mosaico=${mosaico.id}, tessela=${tessela.id}, conteudo=${conteudo.id}`);
+      notifyContentUpdate(mosaico.id, tessela.id, conteudo.id, nomeArquivo);
     } else {
       await writeLog(`[UPDATE] Erro ao atualizar conteúdo: ${nomeArquivo}`);
     }
 
   } catch (error) {
     await writeLog(`[UPDATE] Erro ao processar arquivo modificado ${filePath}: ${error.message}`);
+  }
+}
+
+// Função para notificar o frontend sobre atualizações de conteúdo
+function notifyContentUpdate(mosaicoId, tesselaId, conteudoId, nomeArquivo) {
+  console.log(`[WATCHER] notifyContentUpdate chamada com: mosaicoId=${mosaicoId}, tesselaId=${tesselaId}, conteudoId=${conteudoId}, nomeArquivo=${nomeArquivo}`);
+  console.log(`[WATCHER] mainWindowRef existe: ${!!mainWindowRef}`);
+  
+  if (mainWindowRef && !mainWindowRef.isDestroyed()) {
+    console.log(`[WATCHER] mainWindow não está destruída, enviando notificação...`);
+    try {
+      mainWindowRef.webContents.send('content:updated', {
+        mosaicoId,
+        tesselaId,
+        conteudoId,
+        nomeArquivo,
+        timestamp: Date.now()
+      });
+      console.log(`[WATCHER] Notificação enviada para frontend: ${nomeArquivo} atualizado`);
+    } catch (error) {
+      console.error('[WATCHER] Erro ao enviar notificação para frontend:', error);
+    }
+  } else {
+    console.log(`[WATCHER] mainWindow não disponível ou destruída, não foi possível enviar notificação`);
   }
 }
 

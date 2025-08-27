@@ -13,6 +13,8 @@ contextBridge.exposeInMainWorld('watcherControls', {
   stop: () => ipcRenderer.invoke('watcher:stop'),
   pause: () => ipcRenderer.invoke('watcher:pause'),
   resume: () => ipcRenderer.invoke('watcher:resume'),
+  onContentUpdated: (callback) => ipcRenderer.on('content:updated', callback),
+  removeContentUpdatedListener: () => ipcRenderer.removeAllListeners('content:updated'),
 });
 
 contextBridge.exposeInMainWorld('fileControls', {
