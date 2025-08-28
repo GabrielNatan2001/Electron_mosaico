@@ -88,8 +88,8 @@ module.exports = {
       name: '@electron-forge/publisher-github',
       config: {
         repository: {
-          owner: 'seu-usuario',
-          name: 'tlm-mosaico'
+          owner: 'GabrielNatan2001',
+          name: 'Electron_mosaico'
         },
         prerelease: false,
         draft: false
