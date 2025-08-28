@@ -41,6 +41,16 @@ if (app.isPackaged) {
       releaseType: 'release'
     });
     
+    // Configurações adicionais para melhorar a compatibilidade
+    autoUpdater.allowDowngrade = false;
+    autoUpdater.allowPrerelease = false;
+    
+    // Configurar para usar a API REST moderna do GitHub
+    autoUpdater.requestHeaders = {
+      'User-Agent': 'TLM-Mosaico-App',
+      'Accept': 'application/vnd.github.v3+json'
+    };
+    
     logUpdate('✅ Electron-updater configurado para GitHub');
   } catch (error) {
     console.error('Erro ao carregar electron-updater:', error);
