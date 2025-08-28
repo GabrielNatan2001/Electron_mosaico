@@ -7,7 +7,7 @@ module.exports = {
     asar: true,
     extraResource: ['./public/locales'],
     icon: path.resolve(__dirname, 'src/assets/logoMosaico.ico'),
-    out: path.resolve(__dirname, 'dist'), // Usar diretório diferente
+    out: path.resolve(__dirname, 'out'), // Corrigir para 'out'
   },
   rebuildConfig: {},
   makers: [
@@ -16,6 +16,12 @@ module.exports = {
       config: {
         iconUrl: path.resolve(__dirname, 'src/assets/logoMosaico.ico'),
         setupIcon: path.resolve(__dirname, 'src/assets/logoMosaico.ico'),
+        // Configurações para gerar arquivos de update
+        remoteReleases: '',
+        setupExe: 'TLM-Mosaico-Setup.exe',
+        noMsi: true,
+        // Gerar arquivos de update necessários
+        generateUpdatesFilesForAllChannels: true,
       },
     },
     {
