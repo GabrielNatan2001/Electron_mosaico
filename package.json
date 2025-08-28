@@ -1,7 +1,7 @@
 {
   "name": "tlm-mosaico",
   "productName": "TLM Mosaico",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "TLM Mosaico - Sistema de Gerenciamento de Mosaicos",
   "main": ".webpack/main",
   "repository": {
