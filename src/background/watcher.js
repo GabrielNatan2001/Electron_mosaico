@@ -435,7 +435,7 @@ async function DeletePasta(caminho) {
 
 
 async function CriarPastaTessela(tessela, pastaMosaico) {
-  const pasta = path.join(pastaMosaico, tessela.descricao);
+  const pasta = path.join(pastaMosaico, tessela.label);
 
   try {
     await fs.access(pasta);
