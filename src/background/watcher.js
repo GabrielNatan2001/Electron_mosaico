@@ -19,7 +19,7 @@ let pausedEvents = [];
 let mainWindowRef = null; // Referência para a janela principal
 
 function ObterPastaBase() {
-  return path.join(os.homedir(), 'MosaicoElectron');
+  return path.join(os.homedir(), 'TlmMosaico');
 }
 function getSystemLocale() {
   return Intl.DateTimeFormat().resolvedOptions().locale;
@@ -364,13 +364,17 @@ async function buscarMosaicosECriarArquivos(userId, token, proprietarioId, pasta
       try {
         await writeLog('[API] Buscando mosaicos do usuário...');
 
+        mosaicosUsuario.splice(0, mosaicosUsuario.length);
         // Chamar api para obter mosaicos
         const mosaicos = await getMosaicosBg(userId, token, proprietarioId);
 
         if (mosaicos.length > 0) {
-          mosaicosUsuario.splice(0, mosaicosUsuario.length);
           for (const mosaico of mosaicos) {
+            await writeLog(`[API] ehGlobal: ${mosaico.ehGlobal} - nome: ${mosaico.nome}`);
             try {
+              if (mosaico.ehGlobal == true) {
+                continue;
+              }
               const pastaMosaicoDoUsuario = path.join(pastaUsuario, mosaico.nome);
 
               // Verificar se a pasta já existe
@@ -411,9 +415,7 @@ async function ObterTesselasPorMosaidoId(userId, token, proprietarioId, mosaidoI
           if (['OFFICE'].includes(conteudo.tipo?.toUpperCase())) {
             var nomeArquivo = conteudo.url.split('/').pop();
             var caminhoArquivo = path.join(pastaTessela, nomeArquivo);
-            await writeLog(`[API] dados api userid: ${userId}, token: ${token}, proprietarioId: ${proprietarioId}, url: ${conteudo.url}`);
             var conteudoArquivo = await downloadConteudoTesselaBackground(userId, token, proprietarioId, conteudo.url);
-            await writeLog(`[API] Erro ao baixar conteúdo da tessela ${conteudoArquivo}`);
             if (conteudoArquivo.length > 0) {
               await fs.writeFile(caminhoArquivo, conteudoArquivo);
             }
@@ -544,7 +546,6 @@ async function atualizarArquivoModificado(filePath) {
       // Se não tiver URL, verificar pelo nome
       return c.nome === nomeArquivo;
     });
-    await writeLog(`[UPDATE] mosaicosUsuario: ${JSON.stringify(mosaicosUsuario)}`);
     if (!conteudo) {
       await writeLog(`[UPDATE] Conteúdo não encontrado para arquivo: ${nomeArquivo}`);
       return;
@@ -608,7 +609,6 @@ async function atualizarArquivoModificado(filePath) {
 
     if (resultado) {
       await writeLog(`[UPDATE] Conteúdo atualizado com sucesso: ${nomeArquivo} na tessela ${nomeTessela}`);
-      console.log(`[WATCHER] Tentando notificar frontend sobre atualização: mosaico=${mosaico.id}, tessela=${tessela.id}, conteudo=${conteudo.id}`);
 
       const pastaUsuario = path.join(ObterPastaBase(), `user_${userId}`);
       await buscarMosaicosECriarArquivos(userId, token, proprietarioId, pastaUsuario);
