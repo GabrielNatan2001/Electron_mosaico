@@ -1,7 +1,19 @@
-const { app, BrowserWindow, session, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, session, ipcMain, shell, dialog } = require('electron');
 const path = require('node:path');
 require('dotenv').config();
 const { startWatcher, pauseWatcher, resumeWatcher, recarregarMosaicos } = require('./background/watcher');
+
+// Importar electron-updater apenas em produção
+let autoUpdater;
+if (app.isPackaged) {
+  try {
+    autoUpdater = require('electron-updater').autoUpdater;
+    // const { configureAutoUpdater } = require('./background/updater-config');
+    // autoUpdater = configureAutoUpdater();
+  } catch (error) {
+    console.error('Erro ao carregar electron-updater:', error);
+  }
+}
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -133,7 +145,6 @@ app.whenReady().then(async () => {
     app.setAboutPanelOptions({
       applicationName: 'TLM Mosaico',
       applicationVersion: app.getVersion(),
-      version: app.getVersion(),
       copyright: '© 2024 TLM Mosaico. Todos os direitos reservados.',
       website: 'https://tlm.com.br'
     });
@@ -142,6 +153,11 @@ app.whenReady().then(async () => {
   await session.defaultSession.clearCache();
   await session.defaultSession.clearStorageData();
   createWindow();
+
+  // Configurar auto-updater se estiver disponível
+  // if (autoUpdater && app.isPackaged) {
+  //   setupAutoUpdater();
+  // }
 
   // Removido: Inicialização automática do watcher
   // O watcher será iniciado apenas após o login do usuário
@@ -338,3 +354,137 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+
+// Função para configurar o auto-updater
+function setupAutoUpdater() {
+  if (!autoUpdater) return;
+
+  // Configurar o auto-updater
+  autoUpdater.autoDownload = false; // Não baixar automaticamente
+  autoUpdater.autoInstallOnAppQuit = true; // Instalar quando o app fechar
+
+  // Eventos do auto-updater
+  autoUpdater.on('checking-for-update', () => {
+    console.log('Verificando atualizações...');
+    if (mainWindowRef) {
+      mainWindowRef.webContents.send('update:checking');
+    }
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    console.log('Atualização disponível:', info);
+    if (mainWindowRef) {
+      mainWindowRef.webContents.send('update:available', info);
+    }
+    
+    // Perguntar ao usuário se quer baixar a atualização
+    dialog.showMessageBox(mainWindowRef, {
+      type: 'info',
+      title: 'Atualização Disponível',
+      message: `Uma nova versão (${info.version}) está disponível.`,
+      detail: 'Deseja baixar e instalar agora?',
+      buttons: ['Sim', 'Não'],
+      defaultId: 0
+    }).then((result) => {
+      if (result.response === 0) {
+        autoUpdater.downloadUpdate();
+      }
+    });
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    console.log('Nenhuma atualização disponível');
+    if (mainWindowRef) {
+      mainWindowRef.webContents.send('update:not-available');
+    }
+  });
+
+  autoUpdater.on('error', (err) => {
+    console.error('Erro no auto-updater:', err);
+    if (mainWindowRef) {
+      mainWindowRef.webContents.send('update:error', err.message);
+    }
+  });
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    if (mainWindowRef) {
+      mainWindowRef.webContents.send('update:download-progress', progressObj);
+    }
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    console.log('Atualização baixada:', info);
+    if (mainWindowRef) {
+      mainWindowRef.webContents.send('update:downloaded', info);
+    }
+    
+    // Perguntar ao usuário se quer instalar agora
+    dialog.showMessageBox(mainWindowRef, {
+      type: 'info',
+      title: 'Atualização Baixada',
+      message: 'A atualização foi baixada com sucesso.',
+      detail: 'Deseja instalar agora? O aplicativo será reiniciado.',
+      buttons: ['Instalar Agora', 'Mais Tarde'],
+      defaultId: 0
+    }).then((result) => {
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
+  });
+
+  // Verificar atualizações a cada 4 horas (em produção)
+  if (app.isPackaged) {
+    setInterval(() => {
+      autoUpdater.checkForUpdates();
+    }, 4 * 60 * 60 * 1000); // 4 horas
+    
+    // Verificar na primeira execução (com delay para não interferir no startup)
+    setTimeout(() => {
+      autoUpdater.checkForUpdates();
+    }, 30000); // 30 segundos após o startup
+  }
+}
+
+// Handlers IPC para atualizações
+ipcMain.handle('update:check', async () => {
+  if (autoUpdater && app.isPackaged) {
+    try {
+      autoUpdater.checkForUpdates();
+      return { success: true, message: 'Verificação de atualização iniciada' };
+    } catch (error) {
+      console.error('Erro ao verificar atualização:', error);
+      return { success: false, message: error.message };
+    }
+  } else {
+    return { success: false, message: 'Auto-updater não disponível' };
+  }
+});
+
+ipcMain.handle('update:download', async () => {
+  if (autoUpdater && app.isPackaged) {
+    try {
+      autoUpdater.downloadUpdate();
+      return { success: true, message: 'Download de atualização iniciado' };
+    } catch (error) {
+      console.error('Erro ao baixar atualização:', error);
+      return { success: false, message: error.message };
+    }
+  } else {
+    return { success: false, message: 'Auto-updater não disponível' };
+  }
+});
+
+ipcMain.handle('update:install', async () => {
+  if (autoUpdater && app.isPackaged) {
+    try {
+      autoUpdater.quitAndInstall();
+      return { success: true, message: 'Instalação de atualização iniciada' };
+    } catch (error) {
+      console.error('Erro ao instalar atualização:', error);
+      return { success: false, message: error.message };
+    }
+  } else {
+    return { success: false, message: 'Auto-updater não disponível' };
+  }
+});

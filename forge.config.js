@@ -7,6 +7,7 @@ module.exports = {
     asar: true,
     extraResource: ['./public/locales'],
     icon: path.resolve(__dirname, 'src/assets/logoMosaico.ico'),
+    out: path.resolve(__dirname, 'dist'), // Usar diretório diferente
   },
   rebuildConfig: {},
   makers: [
@@ -81,5 +82,18 @@ module.exports = {
       [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
       [FuseV1Options.OnlyLoadAppFromAsar]: true, // Habilitado em produção para segurança
     }),
+  ],
+  publishers: [
+    {
+      name: '@electron-forge/publisher-github',
+      config: {
+        repository: {
+          owner: 'seu-usuario',
+          name: 'tlm-mosaico'
+        },
+        prerelease: false,
+        draft: false
+      }
+    }
   ],
 };

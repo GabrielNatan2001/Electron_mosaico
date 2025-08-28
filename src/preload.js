@@ -24,3 +24,10 @@ contextBridge.exposeInMainWorld('fileControls', {
   exists: (filePath) => ipcRenderer.invoke('file:exists', filePath),
   saveFile: (filePath, buffer) => ipcRenderer.invoke('file:saveFile', filePath, buffer),
 });
+
+// API para atualizações automáticas
+contextBridge.exposeInMainWorld('electronAPI', {
+  invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
+  on: (channel, callback) => ipcRenderer.on(channel, callback),
+  removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
+});
