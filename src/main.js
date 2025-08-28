@@ -32,34 +32,36 @@ if (app.isPackaged) {
   try {
     autoUpdater = require('electron-updater').autoUpdater;
     
-    // Configurar o electron-updater para usar GitHub
+    // Configuração AGGRESSIVA para forçar API REST e evitar feed RSS
     autoUpdater.setFeedURL({
       provider: 'github',
       owner: 'GabrielNatan2001',
       repo: 'Electron_mosaico',
       private: false,
-      releaseType: 'release'
+      releaseType: 'release',
+      // Forçar URL específica da API REST
+      url: 'https://api.github.com/repos/GabrielNatan2001/Electron_mosaico/releases'
     });
     
-    // Configurações adicionais para melhorar a compatibilidade
+    // Configurações para evitar comportamentos padrão problemáticos
     autoUpdater.allowDowngrade = false;
     autoUpdater.allowPrerelease = false;
-    
-    // Configurar para usar a API REST moderna do GitHub
-    autoUpdater.requestHeaders = {
-      'User-Agent': 'TLM-Mosaico-App',
-      'Accept': 'application/vnd.github.v3+json'
-    };
-    
-    // Forçar o uso da API REST em vez do feed RSS
     autoUpdater.updateConfigPath = null;
     autoUpdater.autoDownload = false;
     autoUpdater.autoInstallOnAppQuit = true;
     
-    // Configuração específica para evitar o uso do feed RSS
+    // Headers específicos para API REST moderna
+    autoUpdater.requestHeaders = {
+      'User-Agent': 'TLM-Mosaico-App',
+      'Accept': 'application/vnd.github.v3+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'Cache-Control': 'no-cache'
+    };
+    
+    // Configuração adicional para forçar API REST
     if (autoUpdater.setFeedURL) {
-      // Tentar configurar com URL específica da API
       try {
+        // Configuração dupla para garantir que funcione
         autoUpdater.setFeedURL({
           provider: 'github',
           owner: 'GabrielNatan2001',
@@ -68,13 +70,14 @@ if (app.isPackaged) {
           releaseType: 'release',
           url: 'https://api.github.com/repos/GabrielNatan2001/Electron_mosaico/releases'
         });
-        logUpdate('✅ Feed URL configurado com API REST específica');
+        
+        logUpdate('✅ Configuração agressiva aplicada para forçar API REST');
       } catch (error) {
-        logUpdate('⚠️ Erro ao configurar feed URL específico:', error.message);
+        logUpdate('⚠️ Erro na configuração agressiva:', error.message);
       }
     }
     
-    logUpdate('✅ Electron-updater configurado para GitHub');
+    logUpdate('✅ Electron-updater configurado com configuração agressiva para GitHub');
   } catch (error) {
     console.error('Erro ao carregar electron-updater:', error);
   }
