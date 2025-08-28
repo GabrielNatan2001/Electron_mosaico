@@ -51,6 +51,29 @@ if (app.isPackaged) {
       'Accept': 'application/vnd.github.v3+json'
     };
     
+    // Forçar o uso da API REST em vez do feed RSS
+    autoUpdater.updateConfigPath = null;
+    autoUpdater.autoDownload = false;
+    autoUpdater.autoInstallOnAppQuit = true;
+    
+    // Configuração específica para evitar o uso do feed RSS
+    if (autoUpdater.setFeedURL) {
+      // Tentar configurar com URL específica da API
+      try {
+        autoUpdater.setFeedURL({
+          provider: 'github',
+          owner: 'GabrielNatan2001',
+          repo: 'Electron_mosaico',
+          private: false,
+          releaseType: 'release',
+          url: 'https://api.github.com/repos/GabrielNatan2001/Electron_mosaico/releases'
+        });
+        logUpdate('✅ Feed URL configurado com API REST específica');
+      } catch (error) {
+        logUpdate('⚠️ Erro ao configurar feed URL específico:', error.message);
+      }
+    }
+    
     logUpdate('✅ Electron-updater configurado para GitHub');
   } catch (error) {
     console.error('Erro ao carregar electron-updater:', error);
