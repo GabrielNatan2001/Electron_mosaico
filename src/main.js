@@ -8,17 +8,17 @@ const { startWatcher, pauseWatcher, resumeWatcher, recarregarMosaicos } = requir
 const logUpdate = (message, data = null) => {
   const timestamp = new Date().toISOString();
   const logMessage = `[${timestamp}] ${message}${data ? ` - ${JSON.stringify(data)}` : ''}\n`;
-  
+
   // Log no console
   console.log(logMessage.trim());
-  
+
   // Log em arquivo
   try {
     const logDir = path.join(app.getPath('userData'), 'logs');
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
     }
-    
+
     const logFile = path.join(logDir, 'updater.log');
     fs.appendFileSync(logFile, logMessage);
   } catch (error) {
@@ -31,8 +31,17 @@ let autoUpdater;
 if (app.isPackaged) {
   try {
     autoUpdater = require('electron-updater').autoUpdater;
-    // const { configureAutoUpdater } = require('./background/updater-config');
-    // autoUpdater = configureAutoUpdater();
+    
+    // Configurar o electron-updater para usar GitHub
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: 'GabrielNatan2001',
+      repo: 'Electron_mosaico',
+      private: false,
+      releaseType: 'release'
+    });
+    
+    logUpdate('✅ Electron-updater configurado para GitHub');
   } catch (error) {
     console.error('Erro ao carregar electron-updater:', error);
   }
@@ -53,7 +62,7 @@ const createWindow = () => {
     height: 800,
     title: 'TLM Mosaico',
     //frame: false,
-    icon: process.platform === 'darwin' 
+    icon: process.platform === 'darwin'
       ? path.join(__dirname, 'assets', 'logoMosaico.icns')
       : path.join(__dirname, 'assets', 'logoMosaico.ico'),
     //titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
@@ -132,9 +141,9 @@ const createWindow = () => {
   if (app.isPackaged) {
     mainWindow.webContents.on('before-input-event', (event, input) => {
       // Bloquear F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-      if (input.key === 'F12' || 
-          (input.control && input.shift && (input.key === 'I' || input.key === 'J')) ||
-          (input.control && input.key === 'U')) {
+      if (input.key === 'F12' ||
+        (input.control && input.shift && (input.key === 'I' || input.key === 'J')) ||
+        (input.control && input.key === 'U')) {
         event.preventDefault();
       }
     });
@@ -157,12 +166,12 @@ const createWindow = () => {
 app.whenReady().then(async () => {
   // Definir o nome da aplicação para o sistema operacional
   app.setName('TLM Mosaico');
-  
+
   // Configuração específica para Windows
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.tlm.mosaico');
   }
-  
+
   // Configuração específica para macOS
   if (process.platform === 'darwin') {
     app.setAboutPanelOptions({
@@ -172,7 +181,7 @@ app.whenReady().then(async () => {
       website: 'https://tlm.com.br'
     });
   }
-  
+
   await session.defaultSession.clearCache();
   await session.defaultSession.clearStorageData();
   createWindow();
@@ -240,13 +249,13 @@ ipcMain.handle('watcher:start', async (event, userId, token = null, proprietario
 ipcMain.handle('file:open', async (event, filePath) => {
   try {
     console.log('[IPC] Tentando abrir arquivo:', filePath);
-    
+
     // Verificar se o arquivo existe antes de tentar abrir
     const fs = require('node:fs');
     if (!fs.existsSync(filePath)) {
       return { success: false, message: 'Arquivo não encontrado no sistema' };
     }
-    
+
     await shell.openPath(filePath);
     return { success: true, message: 'Arquivo aberto com sucesso' };
   } catch (err) {
@@ -305,16 +314,16 @@ ipcMain.handle('watcher:reload-mosaicos', async (event) => {
 ipcMain.handle('file:saveFile', async (event, filePath, arrayBuffer) => {
   try {
     console.log('[IPC] Salvando arquivo:', filePath);
-    
+
     const fs = require('node:fs');
     const path = require('node:path');
-    
+
     // Garantir que o diretório existe
     const dir = path.dirname(filePath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    
+
     // Converter ArrayBuffer para Buffer do Node.js
     let fileBuffer;
     if (arrayBuffer instanceof ArrayBuffer) {
@@ -327,10 +336,10 @@ ipcMain.handle('file:saveFile', async (event, filePath, arrayBuffer) => {
       // Se for outro tipo, tentar converter
       fileBuffer = Buffer.from(arrayBuffer);
     }
-    
+
     // Salvar o arquivo
     fs.writeFileSync(filePath, fileBuffer);
-    
+
     return { success: true, message: 'Arquivo salvo com sucesso' };
   } catch (err) {
     console.error('[IPC] Erro ao salvar arquivo:', err);
@@ -386,11 +395,11 @@ function setupAutoUpdater() {
   if (!autoUpdater) return;
 
   logUpdate('🔧 Configurando auto-updater...');
-  
+
   // Configurar o auto-updater
   autoUpdater.autoDownload = false; // Não baixar automaticamente
   autoUpdater.autoInstallOnAppQuit = true; // Instalar quando o app fechar
-  
+
   logUpdate('✅ Configurações do auto-updater definidas', {
     autoDownload: false,
     autoInstallOnAppQuit: true
@@ -409,7 +418,7 @@ function setupAutoUpdater() {
     if (mainWindowRef) {
       mainWindowRef.webContents.send('update:available', info);
     }
-    
+
     // Perguntar ao usuário se quer baixar a atualização
     logUpdate('💬 Mostrando diálogo para o usuário...');
     dialog.showMessageBox(mainWindowRef, {
@@ -455,7 +464,7 @@ function setupAutoUpdater() {
     if (mainWindowRef) {
       mainWindowRef.webContents.send('update:downloaded', info);
     }
-    
+
     // Perguntar ao usuário se quer instalar agora
     logUpdate('💬 Mostrando diálogo de instalação...');
     dialog.showMessageBox(mainWindowRef, {
@@ -478,12 +487,13 @@ function setupAutoUpdater() {
   // Verificar atualizações a cada 4 horas (em produção)
   if (app.isPackaged) {
     logUpdate('⏰ Agendando verificação automática a cada 4 horas...');
-    
+
     setInterval(() => {
       logUpdate('🔄 Verificação automática agendada - verificando atualizações...');
       autoUpdater.checkForUpdates();
-    }, 4 * 60 * 60 * 1000); // 4 horas
-    
+      //}, 4 * 60 * 60 * 1000); // 4 horas
+    }, 60000); // 4 horas
+
     // Verificar na primeira execução (com delay para não interferir no startup)
     logUpdate('⏱️ Agendando primeira verificação em 30 segundos...');
     setTimeout(() => {
