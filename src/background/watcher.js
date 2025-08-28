@@ -306,7 +306,7 @@ async function startWatcher(options = {}) {
 }
 
 async function CriarPastaBase(pastaBase) {
-  // Cria a pasta MosaicoElectron se ela não existir
+  // Cria a pasta TlmMosaico se ela não existir
   try {
     await fs.access(pastaBase);
     console.log('[WATCHER] Pasta base já existe:', pastaBase);
@@ -588,10 +588,11 @@ async function atualizarArquivoModificado(filePath) {
       mimeType = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
     }
 
+    var nomeArquivoLimpo = limparTimestamp(nomeArquivo);
     // Criar um objeto File-like para o FormData
     const arquivo = {
       buffer: arquivoBuffer,
-      name: nomeArquivo,
+      name: nomeArquivoLimpo,
       type: mimeType
     };
 
@@ -602,7 +603,7 @@ async function atualizarArquivoModificado(filePath) {
       proprietarioId,
       tessela.id,
       conteudo.id,
-      nomeArquivo,
+      nomeArquivoLimpo,
       tipoConteudo,
       arquivo
     );
@@ -623,6 +624,21 @@ async function atualizarArquivoModificado(filePath) {
   }
 }
 
+function limparTimestamp(nomeArquivo) {
+  const ext = path.extname(nomeArquivo); // ex: .docx
+  const base = path.basename(nomeArquivo, ext); // ex: Artigo_Tecnologia_IA_RSD_638919964010561558
+
+  const partes = base.split("_");
+  const ultimo = partes[partes.length - 1];
+
+  // Verifica se é um número grande (timestamp válido)
+  if (/^\d{12,}$/.test(ultimo)) {
+    partes.pop(); // remove o último
+    return partes.join("_") + ext;
+  }
+
+  return nomeArquivo; // não altera se não for timestamp
+}
 // Função para notificar o frontend sobre atualizações de conteúdo
 function notifyContentUpdate(mosaicoId, tesselaId, conteudoId, nomeArquivo) {
   console.log(`[WATCHER] notifyContentUpdate chamada com: mosaicoId=${mosaicoId}, tesselaId=${tesselaId}, conteudoId=${conteudoId}, nomeArquivo=${nomeArquivo}`);

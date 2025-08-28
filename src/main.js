@@ -301,7 +301,7 @@ ipcMain.handle('file:getBasePath', async (event, userId) => {
   try {
     const os = require('node:os');
     const path = require('node:path');
-    const basePath = path.join(os.homedir(), 'MosaicoElectron', `user_${userId}`);
+    const basePath = path.join(os.homedir(), 'TlmMosaico', `user_${userId}`);
     return { success: true, path: basePath };
   } catch (err) {
     console.error('[IPC] Erro ao obter caminho base:', err);
