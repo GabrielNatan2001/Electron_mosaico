@@ -1,7 +1,30 @@
 const { app, BrowserWindow, session, ipcMain, shell, dialog } = require('electron');
 const path = require('node:path');
+const fs = require('node:fs');
 require('dotenv').config();
 const { startWatcher, pauseWatcher, resumeWatcher, recarregarMosaicos } = require('./background/watcher');
+
+// Sistema de logging para atualizações
+const logUpdate = (message, data = null) => {
+  const timestamp = new Date().toISOString();
+  const logMessage = `[${timestamp}] ${message}${data ? ` - ${JSON.stringify(data)}` : ''}\n`;
+  
+  // Log no console
+  console.log(logMessage.trim());
+  
+  // Log em arquivo
+  try {
+    const logDir = path.join(app.getPath('userData'), 'logs');
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true });
+    }
+    
+    const logFile = path.join(logDir, 'updater.log');
+    fs.appendFileSync(logFile, logMessage);
+  } catch (error) {
+    console.error('Erro ao escrever log:', error);
+  }
+};
 
 // Importar electron-updater apenas em produção
 let autoUpdater;
@@ -155,9 +178,12 @@ app.whenReady().then(async () => {
   createWindow();
 
   // Configurar auto-updater se estiver disponível
-  // if (autoUpdater && app.isPackaged) {
-  //   setupAutoUpdater();
-  // }
+  if (autoUpdater && app.isPackaged) {
+    logUpdate('🚀 Inicializando sistema de atualização automática...');
+    setupAutoUpdater();
+  } else {
+    logUpdate('⚠️ Auto-updater não disponível ou aplicativo em desenvolvimento');
+  }
 
   // Removido: Inicialização automática do watcher
   // O watcher será iniciado apenas após o login do usuário
@@ -359,25 +385,33 @@ app.on('window-all-closed', () => {
 function setupAutoUpdater() {
   if (!autoUpdater) return;
 
+  logUpdate('🔧 Configurando auto-updater...');
+  
   // Configurar o auto-updater
   autoUpdater.autoDownload = false; // Não baixar automaticamente
   autoUpdater.autoInstallOnAppQuit = true; // Instalar quando o app fechar
+  
+  logUpdate('✅ Configurações do auto-updater definidas', {
+    autoDownload: false,
+    autoInstallOnAppQuit: true
+  });
 
   // Eventos do auto-updater
   autoUpdater.on('checking-for-update', () => {
-    console.log('Verificando atualizações...');
+    logUpdate('🔍 Verificando atualizações...');
     if (mainWindowRef) {
       mainWindowRef.webContents.send('update:checking');
     }
   });
 
   autoUpdater.on('update-available', (info) => {
-    console.log('Atualização disponível:', info);
+    logUpdate('🎉 Atualização disponível detectada!', info);
     if (mainWindowRef) {
       mainWindowRef.webContents.send('update:available', info);
     }
     
     // Perguntar ao usuário se quer baixar a atualização
+    logUpdate('💬 Mostrando diálogo para o usuário...');
     dialog.showMessageBox(mainWindowRef, {
       type: 'info',
       title: 'Atualização Disponível',
@@ -387,38 +421,43 @@ function setupAutoUpdater() {
       defaultId: 0
     }).then((result) => {
       if (result.response === 0) {
+        logUpdate('✅ Usuário escolheu baixar a atualização');
         autoUpdater.downloadUpdate();
+      } else {
+        logUpdate('❌ Usuário escolheu não baixar a atualização');
       }
     });
   });
 
   autoUpdater.on('update-not-available', () => {
-    console.log('Nenhuma atualização disponível');
+    logUpdate('✅ Nenhuma atualização disponível - aplicativo está atualizado');
     if (mainWindowRef) {
       mainWindowRef.webContents.send('update:not-available');
     }
   });
 
   autoUpdater.on('error', (err) => {
-    console.error('Erro no auto-updater:', err);
+    logUpdate('❌ Erro no auto-updater', { error: err.message, stack: err.stack });
     if (mainWindowRef) {
       mainWindowRef.webContents.send('update:error', err.message);
     }
   });
 
   autoUpdater.on('download-progress', (progressObj) => {
+    logUpdate('📥 Progresso do download', progressObj);
     if (mainWindowRef) {
       mainWindowRef.webContents.send('update:download-progress', progressObj);
     }
   });
 
   autoUpdater.on('update-downloaded', (info) => {
-    console.log('Atualização baixada:', info);
+    logUpdate('🎯 Atualização baixada com sucesso!', info);
     if (mainWindowRef) {
       mainWindowRef.webContents.send('update:downloaded', info);
     }
     
     // Perguntar ao usuário se quer instalar agora
+    logUpdate('💬 Mostrando diálogo de instalação...');
     dialog.showMessageBox(mainWindowRef, {
       type: 'info',
       title: 'Atualização Baixada',
@@ -428,19 +467,27 @@ function setupAutoUpdater() {
       defaultId: 0
     }).then((result) => {
       if (result.response === 0) {
+        logUpdate('🚀 Usuário escolheu instalar agora - reiniciando aplicativo...');
         autoUpdater.quitAndInstall();
+      } else {
+        logUpdate('⏰ Usuário escolheu instalar mais tarde');
       }
     });
   });
 
   // Verificar atualizações a cada 4 horas (em produção)
   if (app.isPackaged) {
+    logUpdate('⏰ Agendando verificação automática a cada 4 horas...');
+    
     setInterval(() => {
+      logUpdate('🔄 Verificação automática agendada - verificando atualizações...');
       autoUpdater.checkForUpdates();
     }, 4 * 60 * 60 * 1000); // 4 horas
     
     // Verificar na primeira execução (com delay para não interferir no startup)
+    logUpdate('⏱️ Agendando primeira verificação em 30 segundos...');
     setTimeout(() => {
+      logUpdate('🚀 Primeira verificação automática iniciada...');
       autoUpdater.checkForUpdates();
     }, 30000); // 30 segundos após o startup
   }
@@ -450,13 +497,15 @@ function setupAutoUpdater() {
 ipcMain.handle('update:check', async () => {
   if (autoUpdater && app.isPackaged) {
     try {
+      logUpdate('🔍 Verificação manual de atualização solicitada via IPC');
       autoUpdater.checkForUpdates();
       return { success: true, message: 'Verificação de atualização iniciada' };
     } catch (error) {
-      console.error('Erro ao verificar atualização:', error);
+      logUpdate('❌ Erro ao verificar atualização via IPC', { error: error.message });
       return { success: false, message: error.message };
     }
   } else {
+    logUpdate('⚠️ Auto-updater não disponível para verificação manual');
     return { success: false, message: 'Auto-updater não disponível' };
   }
 });
