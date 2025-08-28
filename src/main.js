@@ -16,10 +16,13 @@ const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    frame: false,
-    icon: path.join(__dirname, 'assets', 'logoMosaico.png'),
-    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
-    transparent: true,
+    title: 'TLM Mosaico',
+    //frame: false,
+    icon: process.platform === 'darwin' 
+      ? path.join(__dirname, 'assets', 'logoMosaico.icns')
+      : path.join(__dirname, 'assets', 'logoMosaico.ico'),
+    //titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
+    //transparent: true,
     backgroundColor: '#00000000',
     vibrancy: process.platform === 'darwin' ? 'under-window' : undefined,
     visualEffectState: process.platform === 'darwin' ? 'active' : undefined,
@@ -117,6 +120,25 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
+  // Definir o nome da aplicação para o sistema operacional
+  app.setName('TLM Mosaico');
+  
+  // Configuração específica para Windows
+  if (process.platform === 'win32') {
+    app.setAppUserModelId('com.tlm.mosaico');
+  }
+  
+  // Configuração específica para macOS
+  if (process.platform === 'darwin') {
+    app.setAboutPanelOptions({
+      applicationName: 'TLM Mosaico',
+      applicationVersion: app.getVersion(),
+      version: app.getVersion(),
+      copyright: '© 2024 TLM Mosaico. Todos os direitos reservados.',
+      website: 'https://tlm.com.br'
+    });
+  }
+  
   await session.defaultSession.clearCache();
   await session.defaultSession.clearStorageData();
   createWindow();

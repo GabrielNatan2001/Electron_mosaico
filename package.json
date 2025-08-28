@@ -1,8 +1,8 @@
 {
   "name": "tlm-mosaico",
-  "productName": "tlm-mosaico",
-  "version": "1.0.0",
-  "description": "TlsMosaico",
+  "productName": "TLM Mosaico",
+  "version": "1.0.1",
+  "description": "TLM Mosaico - Sistema de Gerenciamento de Mosaicos",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
