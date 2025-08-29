@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext.jsx";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import ModalTermos from "@/components/Termos/ModalTermos";
+import VersionDisplay from "@/components/VersionDisplay";
 import {
   Card,
   CardHeader,
@@ -259,6 +260,7 @@ export default function Login() {
           {t("footer.landingLink")}
         </Link>
       </div>
+      <VersionDisplay />
     </div>
   );
 }

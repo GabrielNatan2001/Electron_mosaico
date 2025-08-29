@@ -59,6 +59,11 @@ const createWindow = () => {
     mainWindow.close();
   });
 
+  // Handler para obter versão da aplicação
+  ipcMain.handle('app:get-version', () => {
+    return app.getVersion();
+  });
+
   // Configurar CSP para permitir conexões com a API e desenvolvimento
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const isDev = !app.isPackaged;

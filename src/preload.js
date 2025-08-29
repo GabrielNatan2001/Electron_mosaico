@@ -8,6 +8,10 @@ contextBridge.exposeInMainWorld('windowControls', {
   isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
 });
 
+contextBridge.exposeInMainWorld('electronAPI', {
+  getAppVersion: () => ipcRenderer.invoke('app:get-version'),
+});
+
 contextBridge.exposeInMainWorld('watcherControls', {
   start: (userId, token, proprietarioId) => ipcRenderer.invoke('watcher:start', userId, token, proprietarioId),
   stop: () => ipcRenderer.invoke('watcher:stop'),
