@@ -529,7 +529,7 @@ async function atualizarArquivoModificado(filePath) {
     }
 
     // Encontrar a tessela correspondente
-    const tessela = mosaico.tesselas.find(t => t.descricao === nomeTessela);
+    const tessela = mosaico.tesselas.find(t => t.label === nomeTessela);
     if (!tessela) {
       await writeLog(`[UPDATE] Tessela não encontrada: ${nomeTessela}`);
       return;
