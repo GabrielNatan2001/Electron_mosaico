@@ -2,6 +2,7 @@ const { app, BrowserWindow, session, ipcMain, shell } = require('electron');
 const path = require('node:path');
 require('dotenv').config();
 const { startWatcher, pauseWatcher, resumeWatcher, recarregarMosaicos } = require('./background/watcher');
+const { AutoUpdater } = require('./background/updater');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -10,6 +11,7 @@ if (require('electron-squirrel-startup')) {
 
 let watcherRef = null;
 let mainWindowRef = null;
+let autoUpdaterRef = null;
 
 const createWindow = () => {
   // Create the browser window.
@@ -37,6 +39,9 @@ const createWindow = () => {
     },
   });
   mainWindowRef = mainWindow;
+
+  // Inicializar o auto updater
+  autoUpdaterRef = new AutoUpdater(mainWindow);
 
   // Ocultar barra de menu padrão
   mainWindow.setMenuBarVisibility(false);
@@ -147,6 +152,11 @@ app.whenReady().then(async () => {
   await session.defaultSession.clearCache();
   await session.defaultSession.clearStorageData();
   createWindow();
+
+  // Iniciar verificação periódica de atualizações
+  if (autoUpdaterRef) {
+    autoUpdaterRef.startPeriodicCheck();
+  }
 
   // Removido: Inicialização automática do watcher
   // O watcher será iniciado apenas após o login do usuário

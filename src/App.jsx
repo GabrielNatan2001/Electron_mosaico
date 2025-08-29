@@ -9,6 +9,7 @@ import i18n from "./i18n";
 import { I18nextProvider } from "react-i18next";
 import React from "react";
 import { HashRouter } from "react-router-dom";
+import UpdateNotification from "./components/ui/UpdateNotification";
 
 const applyInitialTheme = () => {
   const savedTheme = sessionStorage.getItem("theme");
@@ -37,6 +38,7 @@ function App() {
             </div>
           </div>
           <ToastContainer position="top-right" autoClose={3000} />
+          <UpdateNotification />
         </HashRouter>
       </AuthProvider>
     </I18nextProvider>

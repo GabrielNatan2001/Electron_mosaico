@@ -10,6 +10,10 @@ contextBridge.exposeInMainWorld('windowControls', {
 
 contextBridge.exposeInMainWorld('electronAPI', {
   getAppVersion: () => ipcRenderer.invoke('app:get-version'),
+  // Auto updater APIs
+  invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
+  on: (channel, callback) => ipcRenderer.on(channel, callback),
+  removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
 });
 
 contextBridge.exposeInMainWorld('watcherControls', {
