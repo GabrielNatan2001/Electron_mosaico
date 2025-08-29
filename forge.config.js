@@ -13,8 +13,8 @@ module.exports = {
       name: '@electron-forge/publisher-github',
       config: {
         repository: {
-          owner: 'seu-usuario',
-          name: 'seu-repositorio'
+          owner: 'GabrielNatan2001',
+          name: 'Electron_mosaico'
         },
         prerelease: false,
         draft: false
