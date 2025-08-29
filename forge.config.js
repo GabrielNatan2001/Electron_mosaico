@@ -8,6 +8,19 @@ module.exports = {
     extraResource: ['./public/locales'],
     icon: path.resolve(__dirname, 'src/assets/logoMosaico.ico'),
   },
+  publishers: [
+    {
+      name: '@electron-forge/publisher-github',
+      config: {
+        repository: {
+          owner: 'seu-usuario',
+          name: 'seu-repositorio'
+        },
+        prerelease: false,
+        draft: false
+      }
+    }
+  ],
   rebuildConfig: {},
   makers: [
     {

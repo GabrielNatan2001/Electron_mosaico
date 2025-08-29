@@ -1,18 +1,22 @@
 {
   "name": "tlm-mosaico",
   "productName": "TLM Mosaico",
-  "version": "1.0.1",
+  "version": "1.0.6",
   "description": "TLM Mosaico - Sistema de Gerenciamento de Mosaicos",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
     "start:debug": "cross-env NODE_OPTIONS=\"--inspect=5858\" electron-forge start",
     "start:debug-brk": "cross-env NODE_OPTIONS=\"--inspect-brk=5859\" electron-forge start",
-    "start:debug-watcher": "cross-env NODE_OPTIONS=\"--inspect=5859\" node test-watcher.js",
+    "start:debug-watcher": "cross-env NODE_OPTIONS=\"--inspect-brk=5859\" node test-watcher.js",
     "package": "cross-env NODE_ENV=production electron-forge package",
     "make": "cross-env NODE_ENV=production electron-forge make",
     "publish": "cross-env NODE_ENV=production electron-forge publish",
-    "lint": "echo \"No linting configured\""
+    "lint": "echo \"No linting configured\"",
+    "update:patch": "node scripts/publish-update.js patch",
+    "update:minor": "node scripts/publish-update.js minor",
+    "update:major": "node scripts/publish-update.js major",
+    "check-updates": "electron-forge start -- --check-updates"
   },
   "keywords": [],
   "author": {
@@ -32,6 +36,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.8.3",
     "@electron-forge/plugin-fuses": "^7.8.3",
     "@electron-forge/plugin-webpack": "^7.8.3",
+    "@electron-forge/publisher-github": "^7.8.3",
     "@electron/fuses": "^1.8.0",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.1.12",
@@ -61,6 +66,7 @@
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.1.0",
     "electron-squirrel-startup": "^1.0.1",
+    "electron-updater": "^6.6.2",
     "framer-motion": "^12.23.12",
     "i18next": "^25.4.0",
     "i18next-browser-languagedetector": "^8.2.0",
