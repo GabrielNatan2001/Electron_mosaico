@@ -588,10 +588,11 @@ async function atualizarArquivoModificado(filePath) {
       mimeType = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
     }
 
+    var nomeArquivoLimpo = nomeArquivo.replace(/_\d+(?=\.[^.]+$)/, "")
     // Criar um objeto File-like para o FormData
     const arquivo = {
       buffer: arquivoBuffer,
-      name: nomeArquivo,
+      name: nomeArquivoLimpo,
       type: mimeType
     };
 
@@ -602,7 +603,7 @@ async function atualizarArquivoModificado(filePath) {
       proprietarioId,
       tessela.id,
       conteudo.id,
-      nomeArquivo,
+      nomeArquivoLimpo,
       tipoConteudo,
       arquivo
     );
@@ -612,7 +613,6 @@ async function atualizarArquivoModificado(filePath) {
 
       const pastaUsuario = path.join(ObterPastaBase(), `user_${userId}`);
       await buscarMosaicosECriarArquivos(userId, token, proprietarioId, pastaUsuario);
-      await writeLog(`[UPDATE] mosaicos ${JSON.stringify(mosaicosUsuario)}`);
       notifyContentUpdate(mosaico.id, tessela.id, conteudo.id, nomeArquivo);
     } else {
       await writeLog(`[UPDATE] Erro ao atualizar conteúdo: ${nomeArquivo}`);
