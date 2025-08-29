@@ -1,0 +1,9 @@
+provider: github
+owner: GabrielNatan2001
+repo: Electron_mosaico
+private: false
+releaseType: release
+allowPrerelease: false
+allowDowngrade: false
+requestHeaders:
+  User-Agent: TLM-Mosaico-App-Dev

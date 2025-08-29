@@ -4,57 +4,52 @@
 module.exports = {
   // Configurações do GitHub
   github: {
-    owner: 'GabrielNatan2001', // Substitua pelo seu usuário do GitHub
-    repo: 'Electron_mosaico', // Substitua pelo nome do seu repositório
-    private: false, // true se for repositório privado
+    owner: 'GabrielNatan2001',
+    repo: 'Electron_mosaico',
+    private: false,
   },
   
   // Configurações do auto updater
   updater: {
-    // URL base para releases (será construída automaticamente)
-    getUpdateURL: function() {
-      return `https://github.com/${this.github.owner}/${this.github.repo}/releases/latest/download`;
-    },
-    
-      // Configurações específicas por plataforma
-  platform: {
-    win32: {
-      provider: 'github',
-      owner: 'GabrielNatan2001',
-      repo: 'Electron_mosaico',
-      private: false,
-      releaseType: 'release',
-      allowPrerelease: false,
-      allowDowngrade: false,
-      requestHeaders: {
-        'User-Agent': 'TLM-Mosaico-App'
-      }
-    },
-    darwin: {
-      provider: 'github',
-      owner: 'GabrielNatan2001',
-      repo: 'Electron_mosaico',
-      private: false,
-      releaseType: 'release',
-      allowPrerelease: false,
-      allowDowngrade: false,
-      requestHeaders: {
-        'User-Agent': 'TLM-Mosaico-App'
-      }
-    },
-    linux: {
-      provider: 'github',
-      owner: 'GabrielNatan2001',
-      repo: 'Electron_mosaico',
-      private: false,
-      releaseType: 'release',
-      allowPrerelease: false,
-      allowDowngrade: false,
-      requestHeaders: {
-        'User-Agent': 'TLM-Mosaico-App'
+    // Configurações específicas por plataforma
+    platform: {
+      win32: {
+        provider: 'github',
+        owner: 'GabrielNatan2001',
+        repo: 'Electron_mosaico',
+        private: false,
+        releaseType: 'release',
+        allowPrerelease: false,
+        allowDowngrade: false,
+        requestHeaders: {
+          'User-Agent': 'TLM-Mosaico-App'
+        }
+      },
+      darwin: {
+        provider: 'github',
+        owner: 'GabrielNatan2001',
+        repo: 'Electron_mosaico',
+        private: false,
+        releaseType: 'release',
+        allowPrerelease: false,
+        allowDowngrade: false,
+        requestHeaders: {
+          'User-Agent': 'TLM-Mosaico-App'
+        }
+      },
+      linux: {
+        provider: 'github',
+        owner: 'GabrielNatan2001',
+        repo: 'Electron_mosaico',
+        private: false,
+        releaseType: 'release',
+        allowPrerelease: false,
+        allowDowngrade: false,
+        requestHeaders: {
+          'User-Agent': 'TLM-Mosaico-App'
+        }
       }
     }
-  }
   },
   
   // Configurações de notificação
@@ -67,7 +62,7 @@ module.exports = {
   
   // Configurações de logging
   logging: {
-    level: 'info', // 'error', 'warn', 'info', 'debug'
+    level: 'info',
     file: 'updater.log',
     maxSize: '10m',
     maxFiles: 5

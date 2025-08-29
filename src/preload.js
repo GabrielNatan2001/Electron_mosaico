@@ -16,6 +16,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
   // Logs do auto updater
   getUpdaterLogs: (lines = 100) => ipcRenderer.invoke('updater:get-logs', lines),
+  // Teste de atualização em desenvolvimento
+  testUpdater: () => ipcRenderer.invoke('updater:test-update'),
+  // Verificar atualizações via API do GitHub (sem arquivo .yml)
+  checkGitHubUpdates: () => ipcRenderer.invoke('updater:check-github-api'),
 });
 
 contextBridge.exposeInMainWorld('watcherControls', {

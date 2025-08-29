@@ -21,12 +21,35 @@ class AutoUpdater {
     // Configurar o auto updater com as configurações do arquivo
     const config = updaterConfig.updater.platform[process.platform] || updaterConfig.updater.platform.win32;
     
+    this.log(`Configurando auto updater para plataforma: ${process.platform}`);
+    this.log(`Configuração aplicada:`, 'DEBUG');
+    this.log(`- Provider: ${config.provider}`);
+    this.log(`- Owner: ${config.owner}`);
+    this.log(`- Repo: ${config.repo}`);
+    this.log(`- Private: ${config.private}`);
+    
     // Aplicar configurações específicas da plataforma
     Object.assign(autoUpdater, config);
     
     // Configurações gerais
     autoUpdater.autoDownload = updaterConfig.notifications.autoDownload;
     autoUpdater.autoInstallOnAppQuit = true; // Instalar quando fechar o app
+    
+    // Configurações específicas para funcionar sem arquivo .yml
+    autoUpdater.allowPrerelease = false;
+    autoUpdater.allowDowngrade = false;
+    autoUpdater.forceDevUpdateConfig = false;
+    
+    // Forçar verificação em desenvolvimento
+    if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
+      this.log('🔧 Modo desenvolvimento detectado - forçando configurações de teste');
+      autoUpdater.forceDevUpdateConfig = true;
+      autoUpdater.allowPrerelease = true;
+    }
+    
+    this.log(`Auto updater configurado. Versão atual: ${app.getVersion()}`);
+    this.log(`Modo empacotado: ${app.isPackaged}`);
+    this.log(`NODE_ENV: ${process.env.NODE_ENV}`);
     
     // Eventos do auto updater
     autoUpdater.on('checking-for-update', () => {
@@ -56,8 +79,12 @@ class AutoUpdater {
 
     autoUpdater.on('error', (err) => {
       // Ignorar erros de arquivo não encontrado na primeira execução
-      if (err.message.includes('app-update.yml') || err.message.includes('ENOENT')) {
+      if (err.message.includes('app-update.yml') || err.message.includes('dev-app-update.yml') || err.message.includes('ENOENT')) {
         this.log('Primeira execução - arquivo de configuração de atualização não encontrado (normal)', 'INFO');
+        this.log('📝 Criando arquivo de configuração de desenvolvimento...', 'INFO');
+        
+        // Tentar criar arquivo de configuração se não existir
+        this.createDevConfigFile();
         return;
       }
       
@@ -94,6 +121,13 @@ class AutoUpdater {
     ipcMain.handle('updater:check-for-updates', async () => {
       try {
         this.log('Verificando atualizações via IPC...');
+        
+        // Em desenvolvimento, forçar configurações
+        if (!app.isPackaged) {
+          this.log('🔧 Modo desenvolvimento - forçando configurações');
+          autoUpdater.forceDevUpdateConfig = true;
+        }
+        
         await autoUpdater.checkForUpdates();
         return { success: true, message: 'Verificação iniciada' };
       } catch (error) {
@@ -145,6 +179,76 @@ class AutoUpdater {
     // Handler para obter logs
     ipcMain.handle('updater:get-logs', (event, lines = 100) => {
       return this.getLogs(lines);
+    });
+
+    // Handler para teste em desenvolvimento
+    ipcMain.handle('updater:test-update', async () => {
+      try {
+        this.log('🧪 Teste de atualização em desenvolvimento...');
+        
+        // Configurações específicas para teste
+        autoUpdater.forceDevUpdateConfig = true;
+        autoUpdater.allowPrerelease = true;
+        autoUpdater.allowDowngrade = false;
+        
+        // Simular verificação
+        await autoUpdater.checkForUpdates();
+        return { success: true, message: 'Teste de verificação iniciado' };
+      } catch (error) {
+        this.log(`Erro no teste: ${error.message}`, 'ERROR');
+        return { success: false, message: error.message };
+      }
+    });
+
+    // Handler para verificar atualizações via API do GitHub (sem arquivo .yml)
+    ipcMain.handle('updater:check-github-api', async () => {
+      try {
+        this.log('🌐 Verificando atualizações via API do GitHub...');
+        
+        // Fazer requisição direta para a API do GitHub
+        const response = await fetch('https://api.github.com/repos/GabrielNatan2001/Electron_mosaico/releases/latest');
+        const latestRelease = await response.json();
+        
+        if (latestRelease.tag_name) {
+          const currentVersion = app.getVersion();
+          const latestVersion = latestRelease.tag_name.replace('v', '');
+          
+          this.log(`Versão atual: ${currentVersion}`);
+          this.log(`Última versão disponível: ${latestVersion}`);
+          
+          if (this.compareVersions(latestVersion, currentVersion) > 0) {
+            this.log(`✅ Nova versão disponível: ${latestVersion}`);
+            this.isUpdateAvailable = true;
+            
+            // Simular evento de atualização disponível
+            this.sendToRenderer('update-status', { 
+              status: 'available', 
+              info: { version: latestVersion, releaseNotes: latestRelease.body }
+            });
+            
+            return { 
+              success: true, 
+              hasUpdate: true, 
+              currentVersion, 
+              latestVersion,
+              releaseNotes: latestRelease.body
+            };
+          } else {
+            this.log('✅ Aplicação está atualizada');
+            return { 
+              success: true, 
+              hasUpdate: false, 
+              currentVersion, 
+              latestVersion 
+            };
+          }
+        } else {
+          throw new Error('Não foi possível obter informações da release');
+        }
+      } catch (error) {
+        this.log(`❌ Erro ao verificar via API: ${error.message}`, 'ERROR');
+        return { success: false, message: error.message };
+      }
     });
   }
 
@@ -298,6 +402,48 @@ class AutoUpdater {
       this.log(`Erro ao ler logs: ${error.message}`, 'ERROR');
       return [];
     }
+  }
+
+  // Método para criar arquivo de configuração de desenvolvimento
+  createDevConfigFile() {
+    try {
+      const devConfigPath = path.join(process.cwd(), 'dev-app-update.yml');
+      
+      if (!fs.existsSync(devConfigPath)) {
+        const configContent = `provider: github
+owner: ${updaterConfig.github.owner}
+repo: ${updaterConfig.github.repo}
+private: ${updaterConfig.github.private}
+releaseType: release
+allowPrerelease: false
+allowDowngrade: false
+requestHeaders:
+  User-Agent: TLM-Mosaico-App-Dev`;
+        
+        fs.writeFileSync(devConfigPath, configContent);
+        this.log(`✅ Arquivo de configuração criado: ${devConfigPath}`, 'INFO');
+      } else {
+        this.log(`📁 Arquivo de configuração já existe: ${devConfigPath}`, 'INFO');
+      }
+    } catch (error) {
+      this.log(`❌ Erro ao criar arquivo de configuração: ${error.message}`, 'ERROR');
+    }
+  }
+
+  // Método para comparar versões semânticas
+  compareVersions(version1, version2) {
+    const v1Parts = version1.split('.').map(Number);
+    const v2Parts = version2.split('.').map(Number);
+    
+    for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+      const v1Part = v1Parts[i] || 0;
+      const v2Part = v2Parts[i] || 0;
+      
+      if (v1Part > v2Part) return 1;
+      if (v1Part < v2Part) return 1;
+    }
+    
+    return 0; // Versões iguais
   }
 }
 

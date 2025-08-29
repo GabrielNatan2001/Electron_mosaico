@@ -7,6 +7,12 @@ module.exports = {
     asar: true,
     extraResource: ['./public/locales'],
     icon: path.resolve(__dirname, 'src/assets/logoMosaico.ico'),
+    // Configurações para o auto updater
+    generateUpdatesFilesForAllChannels: true,
+    publishAutoUpdate: true,
+    // Configurações específicas do electron-builder
+    electronVersion: '37.3.1',
+    overwrite: true,
   },
   publishers: [
     {
@@ -28,6 +34,10 @@ module.exports = {
       config: {
         iconUrl: path.resolve(__dirname, 'src/assets/logoMosaico.ico'),
         setupIcon: path.resolve(__dirname, 'src/assets/logoMosaico.ico'),
+        // Configurações para o auto updater
+        remoteReleases: 'https://github.com/GabrielNatan2001/Electron_mosaico/releases/latest/download',
+        setupExe: 'TLM-Mosaico-Setup.exe',
+        noMsi: true,
       },
     },
     {
@@ -95,4 +105,13 @@ module.exports = {
       [FuseV1Options.OnlyLoadAppFromAsar]: true, // Habilitado em produção para segurança
     }),
   ],
+  // Configurações específicas para o auto updater
+  electronUpdater: {
+    provider: 'github',
+    owner: 'GabrielNatan2001',
+    repo: 'Electron_mosaico',
+    private: false,
+    releaseType: 'release',
+    publishAutoUpdater: true,
+  },
 };
