@@ -1,12 +1,17 @@
 const { autoUpdater } = require('electron-updater');
 const { app, dialog, ipcMain } = require('electron');
 const updaterConfig = require('./updater-config');
+const fs = require('fs');
+const path = require('path');
 
 class AutoUpdater {
   constructor(mainWindow) {
     this.mainWindow = mainWindow;
     this.isUpdateAvailable = false;
     this.isUpdateDownloaded = false;
+    
+    // Configurar sistema de logs
+    this.setupLogging();
     
     this.setupAutoUpdater();
     this.setupIpcHandlers();
@@ -25,12 +30,12 @@ class AutoUpdater {
     
     // Eventos do auto updater
     autoUpdater.on('checking-for-update', () => {
-      console.log('Verificando atualizações...');
+      this.log('Verificando atualizações...');
       this.sendToRenderer('update-status', { status: 'checking' });
     });
 
     autoUpdater.on('update-available', (info) => {
-      console.log('Atualização disponível:', info);
+      this.log(`Atualização disponível: ${info.version}`);
       this.isUpdateAvailable = true;
       this.sendToRenderer('update-status', { 
         status: 'available', 
@@ -42,7 +47,7 @@ class AutoUpdater {
     });
 
     autoUpdater.on('update-not-available', (info) => {
-      console.log('Nenhuma atualização disponível:', info);
+      this.log('Nenhuma atualização disponível');
       this.sendToRenderer('update-status', { 
         status: 'not-available', 
         info: info 
@@ -50,7 +55,13 @@ class AutoUpdater {
     });
 
     autoUpdater.on('error', (err) => {
-      console.error('Erro no auto updater:', err);
+      // Ignorar erros de arquivo não encontrado na primeira execução
+      if (err.message.includes('app-update.yml') || err.message.includes('ENOENT')) {
+        this.log('Primeira execução - arquivo de configuração de atualização não encontrado (normal)', 'INFO');
+        return;
+      }
+      
+      this.log(`Erro no auto updater: ${err.message}`, 'ERROR');
       this.sendToRenderer('update-status', { 
         status: 'error', 
         error: err.message 
@@ -58,7 +69,7 @@ class AutoUpdater {
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
-      console.log('Progresso do download:', progressObj);
+      this.log(`Progresso do download: ${Math.round(progressObj.percent || 0)}%`);
       this.sendToRenderer('update-status', { 
         status: 'downloading', 
         progress: progressObj 
@@ -66,7 +77,7 @@ class AutoUpdater {
     });
 
     autoUpdater.on('update-downloaded', (info) => {
-      console.log('Atualização baixada:', info);
+      this.log(`Atualização baixada: ${info.version}`);
       this.isUpdateDownloaded = true;
       this.sendToRenderer('update-status', { 
         status: 'downloaded', 
@@ -82,11 +93,11 @@ class AutoUpdater {
     // Handler para verificar atualizações
     ipcMain.handle('updater:check-for-updates', async () => {
       try {
-        console.log('Verificando atualizações via IPC...');
+        this.log('Verificando atualizações via IPC...');
         await autoUpdater.checkForUpdates();
         return { success: true, message: 'Verificação iniciada' };
       } catch (error) {
-        console.error('Erro ao verificar atualizações:', error);
+        this.log(`Erro ao verificar atualizações: ${error.message}`, 'ERROR');
         return { success: false, message: error.message };
       }
     });
@@ -98,11 +109,11 @@ class AutoUpdater {
           return { success: false, message: 'Nenhuma atualização disponível' };
         }
         
-        console.log('Iniciando download da atualização...');
+        this.log('Iniciando download da atualização...');
         await autoUpdater.downloadUpdate();
         return { success: true, message: 'Download iniciado' };
       } catch (error) {
-        console.error('Erro ao baixar atualização:', error);
+        this.log(`Erro ao baixar atualização: ${error.message}`, 'ERROR');
         return { success: false, message: error.message };
       }
     });
@@ -114,11 +125,11 @@ class AutoUpdater {
           return { success: false, message: 'Nenhuma atualização baixada' };
         }
         
-        console.log('Instalando atualização...');
+        this.log('Instalando atualização...');
         autoUpdater.quitAndInstall();
         return { success: true, message: 'Instalação iniciada' };
       } catch (error) {
-        console.error('Erro ao instalar atualização:', error);
+        this.log(`Erro ao instalar atualização: ${error.message}`, 'ERROR');
         return { success: false, message: error.message };
       }
     });
@@ -129,6 +140,11 @@ class AutoUpdater {
         isUpdateAvailable: this.isUpdateAvailable,
         isUpdateDownloaded: this.isUpdateDownloaded
       };
+    });
+
+    // Handler para obter logs
+    ipcMain.handle('updater:get-logs', (event, lines = 100) => {
+      return this.getLogs(lines);
     });
   }
 
@@ -199,10 +215,10 @@ class AutoUpdater {
 
   async downloadUpdate() {
     try {
-      console.log('Iniciando download da atualização...');
+      this.log('Iniciando download da atualização...');
       await autoUpdater.downloadUpdate();
     } catch (error) {
-      console.error('Erro ao baixar atualização:', error);
+      this.log(`Erro ao baixar atualização: ${error.message}`, 'ERROR');
       this.sendToRenderer('update-status', { 
         status: 'error', 
         error: error.message 
@@ -212,10 +228,10 @@ class AutoUpdater {
 
   installUpdate() {
     try {
-      console.log('Instalando atualização...');
+      this.log('Instalando atualização...');
       autoUpdater.quitAndInstall();
     } catch (error) {
-      console.error('Erro ao instalar atualização:', error);
+      this.log(`Erro ao instalar atualização: ${error.message}`, 'ERROR');
       this.sendToRenderer('update-status', { 
         status: 'error', 
         error: error.message 
@@ -230,11 +246,58 @@ class AutoUpdater {
     
     setInterval(() => {
       if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-        console.log('Verificação periódica de atualizações...');
-        autoUpdater.checkForUpdates();
+        this.log('Verificação periódica de atualizações...');
+        
+        // Verificar atualizações com tratamento de erro
+        try {
+          autoUpdater.checkForUpdates();
+        } catch (error) {
+          this.log(`Erro na verificação periódica: ${error.message}`, 'WARN');
+        }
       }
     //}, interval * 60 * 1000);
     }, 60000);
+  }
+
+  // Sistema de logging
+  setupLogging() {
+    this.logDir = path.join(app.getPath('userData'), 'logs');
+    this.logFile = path.join(this.logDir, 'updater.log');
+    
+    // Criar diretório de logs se não existir
+    if (!fs.existsSync(this.logDir)) {
+      fs.mkdirSync(this.logDir, { recursive: true });
+    }
+  }
+
+  log(message, level = 'INFO') {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] [${level}] [AutoUpdater] ${message}\n`;
+    
+    // Log no console
+    console.log(logEntry.trim());
+    
+    // Salvar no arquivo
+    try {
+      fs.appendFileSync(this.logFile, logEntry);
+    } catch (error) {
+      console.error('Erro ao salvar log:', error);
+    }
+  }
+
+  // Método para obter logs
+  getLogs(lines = 100) {
+    try {
+      if (fs.existsSync(this.logFile)) {
+        const content = fs.readFileSync(this.logFile, 'utf8');
+        const linesArray = content.split('\n').filter(line => line.trim());
+        return linesArray.slice(-lines);
+      }
+      return [];
+    } catch (error) {
+      this.log(`Erro ao ler logs: ${error.message}`, 'ERROR');
+      return [];
+    }
   }
 }
 

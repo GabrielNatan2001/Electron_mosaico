@@ -14,6 +14,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
   on: (channel, callback) => ipcRenderer.on(channel, callback),
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
+  // Logs do auto updater
+  getUpdaterLogs: (lines = 100) => ipcRenderer.invoke('updater:get-logs', lines),
 });
 
 contextBridge.exposeInMainWorld('watcherControls', {
