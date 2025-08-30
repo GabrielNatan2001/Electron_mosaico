@@ -20,6 +20,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   testUpdater: () => ipcRenderer.invoke('updater:test-update'),
   // Verificar atualizações via API do GitHub (sem arquivo .yml)
   checkGitHubUpdates: () => ipcRenderer.invoke('updater:check-github-api'),
+  // Resources path
+  getResourcesPath: () => {
+    if (process.type === 'renderer') {
+      return process.resourcesPath;
+    }
+    return null;
+  },
 });
 
 contextBridge.exposeInMainWorld('watcherControls', {

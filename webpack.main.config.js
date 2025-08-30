@@ -1,6 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const dotenv = require('dotenv');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 // Carrega variáveis do .env com caminho absoluto
 const envPath = path.resolve(__dirname, '.env');
@@ -56,11 +57,32 @@ module.exports = {
   // Habilitar source maps apenas em desenvolvimento
   devtool: process.env.NODE_ENV === 'production' ? false : 'source-map',
   mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+  target: 'electron-main',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'main.js',
+    libraryTarget: 'commonjs2'
+  },
+  externals: {
+    'electron': 'commonjs2 electron',
+    'electron-updater': 'commonjs2 electron-updater'
+  },
+  node: {
+    __dirname: false,
+    __filename: false
+  },
   plugins: [
     new webpack.DefinePlugin(finalEnvDefine),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
       'process.env.IS_ELECTRON': JSON.stringify(true)
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'src/preload.js', to: 'preload.js' },
+        { from: 'src/index.html', to: 'index.html' },
+        { from: 'src/assets', to: 'assets' }
+      ]
     })
   ],
 };

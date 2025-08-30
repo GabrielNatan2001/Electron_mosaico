@@ -1,22 +1,24 @@
 {
   "name": "tlm-mosaico",
   "productName": "TLM Mosaico",
-  "version": "1.0.16",
+  "version": "1.0.18",
   "description": "TLM Mosaico - Sistema de Gerenciamento de Mosaicos",
-  "main": ".webpack/main",
+  "main": "dist/main.js",
   "scripts": {
-    "start": "electron-forge start",
-    "start:debug": "cross-env NODE_OPTIONS=\"--inspect=5858\" electron-forge start",
-    "start:debug-brk": "cross-env NODE_OPTIONS=\"--inspect-brk=5859\" electron-forge start",
+    "start": "electron .",
+    "start:debug": "cross-env NODE_OPTIONS=\"--inspect=5858\" electron .",
+    "start:debug-brk": "cross-env NODE_OPTIONS=\"--inspect-brk=5859\" electron .",
     "start:debug-watcher": "cross-env NODE_OPTIONS=\"--inspect-brk=5859\" node test-watcher.js",
-    "package": "cross-env NODE_ENV=production electron-forge package",
-    "make": "cross-env NODE_ENV=production electron-forge make",
-    "publish": "cross-env NODE_ENV=production electron-forge publish",
-    "lint": "echo \"No linting configured\"",
+    "build": "webpack --config webpack.renderer.config.js && webpack --config webpack.main.config.js",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:win-unpacked": "npm run build && electron-builder --win --dir",
+    "publish": "npm run build && electron-builder --publish=always",
+    "publish:github": "npm run build && electron-builder --publish=always --win",
     "update:patch": "node scripts/publish-update.js patch",
     "update:minor": "node scripts/publish-update.js minor",
     "update:major": "node scripts/publish-update.js major",
-    "check-updates": "electron-forge start -- --check-updates"
+    "check-updates": "node scripts/publish-update.js check"
   },
   "keywords": [],
   "author": {
@@ -24,20 +26,71 @@
     "email": "mosaico@tlm.com.br"
   },
   "license": "MIT",
+  "build": {
+    "appId": "com.tlm.mosaico",
+    "productName": "TLM Mosaico",
+    "directories": {
+      "output": "build-output",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "public/iconesGerais",
+        "to": "iconesGerais"
+      },
+      {
+        "from": "public/locales",
+        "to": "locales"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "TLM Mosaico",
+      "runAfterFinish": true,
+      "artifactName": "TLM-Mosaico-Setup-${version}.${ext}",
+      "uninstallDisplayName": "TLM Mosaico",
+      "deleteAppDataOnUninstall": false
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "GabrielNatan2001",
+        "repo": "Electron_mosaico",
+        "private": false,
+        "releaseType": "release",
+        "vPrefixedTagName": true,
+        "publishAutoUpdate": true
+      }
+    ],
+    "buildDependenciesFromSource": true,
+    "npmRebuild": false,
+    "compression": "maximum",
+    "removePackageScripts": false,
+    "removePackageKeywords": false
+  },
   "devDependencies": {
     "@babel/core": "^7.28.3",
     "@babel/preset-env": "^7.28.3",
     "@babel/preset-react": "^7.27.1",
-    "@electron-forge/cli": "^7.8.3",
-    "@electron-forge/maker-deb": "^7.8.3",
-    "@electron-forge/maker-rpm": "^7.8.3",
-    "@electron-forge/maker-squirrel": "^7.8.3",
-    "@electron-forge/maker-zip": "^7.8.3",
-    "@electron-forge/plugin-auto-unpack-natives": "^7.8.3",
-    "@electron-forge/plugin-fuses": "^7.8.3",
-    "@electron-forge/plugin-webpack": "^7.8.3",
-    "@electron-forge/publisher-github": "^7.8.3",
-    "@electron/fuses": "^1.8.0",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.1.12",
     "@vercel/webpack-asset-relocator-loader": "^1.7.3",
@@ -48,11 +101,13 @@
     "css-loader": "^6.11.0",
     "dotenv": "^17.2.1",
     "electron": "37.3.1",
+    "electron-builder": "^26.0.12",
     "node-loader": "^2.1.0",
     "postcss": "^8.5.6",
     "postcss-loader": "^8.1.1",
     "style-loader": "^3.3.4",
-    "tailwindcss": "^4.1.12"
+    "tailwindcss": "^4.1.12",
+    "webpack-cli": "^6.0.1"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",

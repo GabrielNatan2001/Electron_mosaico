@@ -12,7 +12,7 @@ i18n
   .use(initReactI18next)
   .init({
     backend: {
-      loadPath: isElectron ? "../locales/{{lng}}/{{ns}}.json" : "/locales/{{lng}}/{{ns}}.json",
+      loadPath: isElectron ? "./locales/{{lng}}/{{ns}}.json" : "/locales/{{lng}}/{{ns}}.json",
       crossDomain: false,
       withCredentials: false,
       requestOptions: {

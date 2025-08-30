@@ -90,3 +90,27 @@ typings/
 
 # Electron-Forge
 out/
+
+# Build outputs
+dist/
+build/
+build-output/
+
+# Electron build artifacts
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+*.snap
+*.blockmap
+*.yml
+
+# Webpack build files
+.webpack/
+*.js.map
+
+# Generated files
+*.renderer.js
+*.main.js
+*.preload.js

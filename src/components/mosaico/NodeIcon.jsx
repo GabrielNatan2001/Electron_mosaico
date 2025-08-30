@@ -18,6 +18,27 @@ export default function NodeIcon(props) {
       ? data.label.substring(0, 15) + "..."
       : data.label;
 
+  let iconSrc = data.icon || "/fallback.png";
+  if (iconSrc.startsWith("./iconesGerais")) {
+    // Para Electron empacotado, usar electronAPI.getResourcesPath
+    console.log('iconSrc', iconSrc);
+    console.log('window', window);
+    console.log('window.electronAPI', window.electronAPI);
+    console.log('window.electronAPI.getResourcesPath', window.electronAPI.getResourcesPath);
+    if (window && window.electronAPI && window.electronAPI.getResourcesPath) {
+      // Electron empacotado - usar electronAPI.getResourcesPath
+      const resourcesPath = window.electronAPI.getResourcesPath();
+      if (resourcesPath) {
+        iconSrc = `file://${resourcesPath}/iconesGerais/${iconSrc.replace("./iconesGerais/", "")}`;
+        console.log('resourcesPath', iconSrc);
+      }
+    } else {
+      // Desenvolvimento - usar caminho relativo
+      iconSrc = iconSrc.replace("./iconesGerais", "../iconesGerais");
+      console.log('./iconesGerais');
+    }
+  }
+
   return (
     <>
       <div
@@ -32,11 +53,10 @@ export default function NodeIcon(props) {
 
         <div className="relative w-[60px] h-[60px] flex items-center justify-center">
           <img
-            src={data.icon || "/fallback.png"}
+            src={iconSrc}
             alt="icon"
-            className={`w-[45px] h-[45px] object-contain relative z-10 ${
-              data.highlight ? "animate-glow-lime" : ""
-            }`}
+            className={`w-[45px] h-[45px] object-contain relative z-10 ${data.highlight ? "animate-glow-lime" : ""
+              }`}
             draggable={false}
           />
 

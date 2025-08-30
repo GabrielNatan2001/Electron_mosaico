@@ -54,7 +54,7 @@ module.exports = {
   
   // Configurações de notificação
   notifications: {
-    checkInterval: 120, // Verificar a cada 2 horas (em minutos)
+    checkInterval: 240, // Verificar a cada 4 horas (em minutos)
     showProgress: true, // Mostrar barra de progresso
     autoDownload: false, // Não baixar automaticamente
     autoInstall: false, // Não instalar automaticamente

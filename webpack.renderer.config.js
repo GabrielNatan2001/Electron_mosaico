@@ -73,11 +73,50 @@ module.exports = {
   // Habilitar source maps apenas em desenvolvimento
   devtool: process.env.NODE_ENV === 'production' ? false : 'source-map',
   mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+  target: 'electron-renderer',
+  entry: './src/renderer.js',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'renderer.js',
+    publicPath: './'
+  },
+  externals: {
+    'electron': 'commonjs2 electron'
+  },
+  resolve: {
+    fallback: {
+      "path": false,
+      "fs": false,
+      "os": false,
+      "crypto": false,
+      "stream": false,
+      "util": false,
+      "buffer": false,
+      "process": false,
+      "global": false
+    }
+  },
   module: {
     rules,
   },
   plugins: [
-    new webpack.DefinePlugin(finalEnvDefine),
+    new webpack.DefinePlugin({
+      ...finalEnvDefine,
+      // Definir variáveis globais para evitar erros
+      'global': 'globalThis',
+      'globalThis': 'globalThis',
+      '__dirname': 'undefined',
+      '__filename': 'undefined',
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+      'process.env.IS_ELECTRON': JSON.stringify(true)
+    }),
+    
+    // Plugin para injetar global no início do bundle
+    new webpack.BannerPlugin({
+      banner: 'var global = globalThis; var globalThis = globalThis;',
+      raw: true,
+      entryOnly: true
+    }),
     new CopyWebpackPlugin({
       patterns: [
         { 
@@ -85,17 +124,20 @@ module.exports = {
           to: 'locales',
           noErrorOnMissing: false
         },
-        { from: path.resolve(__dirname, 'public'), to: '.' },
         { 
           from: path.resolve(__dirname, 'src/assets'), 
           to: 'assets',
           noErrorOnMissing: false
-        }
+        },
+
       ]
     }),
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-      'process.env.IS_ELECTRON': JSON.stringify(true)
+    
+    // Plugin para verificar se as imagens foram copiadas
+    new webpack.BannerPlugin({
+      banner: 'console.log("Webpack build iniciado");',
+      raw: true,
+      entryOnly: true
     })
   ],
   resolve: {

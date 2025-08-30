@@ -1,8 +1,27 @@
 const { app, BrowserWindow, session, ipcMain, shell } = require('electron');
 const path = require('node:path');
+const fs = require('node:fs');
 require('dotenv').config();
-const { startWatcher, pauseWatcher, resumeWatcher, recarregarMosaicos } = require('./background/watcher');
+const { startWatcher, pauseWatcher, resumeWatcher, recarregarMosaico } = require('./background/watcher');
 const { AutoUpdater } = require('./background/updater');
+
+// Sistema de logging em arquivo
+const logFile = path.join(app.getPath('userData'), 'debug-main.log');
+const logToFile = (message) => {
+  const timestamp = new Date().toISOString();
+  const logMessage = `[${timestamp}] ${message}\n`;
+  
+  try {
+    fs.appendFileSync(logFile, logMessage);
+  } catch (error) {
+    console.error('Erro ao escrever no log:', error);
+  }
+  
+  console.log(message);
+};
+
+logToFile('🚀 main.js iniciando...');
+logToFile(`📁 Log file: ${logFile}`);
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -30,12 +49,14 @@ const createWindow = () => {
     visualEffectState: process.platform === 'darwin' ? 'active' : undefined,
     trafficLightPosition: process.platform === 'darwin' ? { x: 12, y: 14 } : undefined,
     webPreferences: {
-      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+      preload: path.join(__dirname, 'preload.js'),
       webSecurity: false, // Permite conexões externas
       nodeIntegration: false,
       contextIsolation: true,
-      // Desabilitar DevTools em produção
-      devTools: !app.isPackaged,
+      // FORÇAR DevTools sempre habilitados para debug
+      devTools: true,
+      // Permitir eval para debug
+      allowRunningInsecureContent: true,
     },
   });
   mainWindowRef = mainWindow;
@@ -69,73 +90,113 @@ const createWindow = () => {
     return app.getVersion();
   });
 
-  // Configurar CSP para permitir conexões com a API e desenvolvimento
+  // TEMPORÁRIO: Desabilitar CSP completamente para debug
+  logToFile('🔒 Desabilitando CSP para debug...');
+  
+  // Remover CSP para permitir tudo
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    const isDev = !app.isPackaged;
-    const devCsp = [
-      "default-src * data: blob: 'unsafe-inline' 'unsafe-eval'",
-      "script-src * data: blob: 'unsafe-inline' 'unsafe-eval'",
-      "worker-src * data: blob: 'unsafe-inline' 'unsafe-eval'",
-      "style-src * 'unsafe-inline' *",
-      "img-src * data: blob:",
-      "connect-src * ws: wss:",
-      "font-src * data:",
-      "media-src * data: blob:",
-      "frame-src *",
-      "object-src *"
-    ].join('; ');
-
-    const csp = devCsp;
-
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy': [csp]
-      }
-    });
+    logToFile('🔒 Removendo CSP...');
+    
+    // Remover CSP completamente
+    const responseHeaders = { ...details.responseHeaders };
+    delete responseHeaders['content-security-policy'];
+    delete responseHeaders['Content-Security-Policy'];
+    
+    logToFile('🔒 CSP removido - permitindo tudo');
+    
+    callback({ responseHeaders });
   });
 
   // and load the index.html of the app.
-  mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-
-  // Open the DevTools apenas em desenvolvimento
-  if (!app.isPackaged) {
-    mainWindow.webContents.openDevTools();
-  }
-
-  // Desabilitar atalhos de teclado para DevTools em produção
-  if (app.isPackaged) {
-    mainWindow.webContents.on('before-input-event', (event, input) => {
-      // Bloquear F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-      if (input.key === 'F12' || 
-          (input.control && input.shift && (input.key === 'I' || input.key === 'J')) ||
-          (input.control && input.key === 'U')) {
-        event.preventDefault();
+  logToFile('🔄 Carregando index.html...');
+  logToFile(`📁 Diretório atual: ${__dirname}`);
+  logToFile(`📄 Caminho do index.html: ${path.join(__dirname, 'index.html')}`);
+  
+  // Verificar se o arquivo existe
+  const indexPath = path.join(__dirname, 'index.html');
+  logToFile(`🔍 Arquivo index.html existe? ${fs.existsSync(indexPath)}`);
+  
+  mainWindow.loadFile(indexPath)
+    .then(() => {
+      logToFile('✅ index.html carregado com sucesso!');
+      
+      // Verificar se o renderer.js existe
+      const rendererPath = path.join(__dirname, 'renderer.js');
+      logToFile(`🔍 Arquivo renderer.js existe? ${fs.existsSync(rendererPath)}`);
+      
+      // Listar arquivos no diretório
+      try {
+        const files = fs.readdirSync(__dirname);
+        logToFile(`📂 Arquivos no diretório: ${files.join(', ')}`);
+      } catch (error) {
+        logToFile(`❌ Erro ao listar arquivos: ${error.message}`);
       }
+    })
+    .catch((error) => {
+      logToFile(`❌ Erro ao carregar index.html: ${error.message}`);
     });
 
-    // Desabilitar menu de contexto (clique direito)
-    mainWindow.webContents.on('context-menu', (event) => {
-      event.preventDefault();
-    });
-
-    // Desabilitar DevTools via código
-    mainWindow.webContents.on('devtools-opened', () => {
-      mainWindow.webContents.closeDevTools();
-    });
-  }
+  // FORÇAR DevTools a abrirem mesmo empacotado
+  logToFile('🔧 Configurando DevTools...');
+  
+  // Aguardar a janela estar pronta
+  mainWindow.webContents.on('did-finish-load', () => {
+    logToFile('🎯 Janela carregada, tentando abrir DevTools...');
+    
+    setTimeout(() => {
+      try {
+        mainWindow.webContents.openDevTools();
+        logToFile('✅ DevTools abertos após carregamento');
+      } catch (error) {
+        logToFile(`❌ DevTools falharam após carregamento: ${error.message}`);
+      }
+    }, 500);
+  });
+  
+  // Método alternativo: quando DOM estiver pronto
+  mainWindow.webContents.on('dom-ready', () => {
+    logToFile('🌐 DOM pronto, tentando abrir DevTools...');
+    
+    setTimeout(() => {
+      try {
+        if (!mainWindow.webContents.isDevToolsOpened()) {
+          mainWindow.webContents.openDevTools();
+          logToFile('✅ DevTools abertos após DOM pronto');
+        }
+      } catch (error) {
+        logToFile(`❌ DevTools falharam após DOM: ${error.message}`);
+      }
+    }, 500);
+  });
+  
+  // Método de fallback: atalhos de teclado
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'F12') {
+      try {
+        mainWindow.webContents.openDevTools();
+        logToFile('✅ DevTools abertos via F12');
+      } catch (error) {
+        logToFile(`❌ DevTools via F12 falhou: ${error.message}`);
+      }
+    }
+  });
+  
+  logToFile('🔧 DevTools configurados - aguardando eventos da janela');
 };
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
+  logToFile('🎯 App está pronto, criando janela...');
+  
   // Definir o nome da aplicação para o sistema operacional
   app.setName('TLM Mosaico');
   
   // Configuração específica para Windows
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.tlm.mosaico');
+    logToFile('🪟 Configuração Windows aplicada');
   }
   
   // Configuração específica para macOS
@@ -147,10 +208,17 @@ app.whenReady().then(async () => {
       copyright: '© 2024 TLM Mosaico. Todos os direitos reservados.',
       website: 'https://tlm.com.br'
     });
+    logToFile('🍎 Configuração macOS aplicada');
   }
   
-  await session.defaultSession.clearCache();
-  await session.defaultSession.clearStorageData();
+  try {
+    await session.defaultSession.clearCache();
+    await session.defaultSession.clearStorageData();
+    logToFile('🧹 Cache e storage limpos');
+  } catch (error) {
+    logToFile(`❌ Erro ao limpar cache: ${error.message}`);
+  }
+  
   createWindow();
 
   // Iniciar verificação periódica de atualizações
