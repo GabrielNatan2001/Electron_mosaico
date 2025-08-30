@@ -1,13 +1,38 @@
-# Teste Mosaico
+# 🎨 TLM Mosaico
 
-## Configuração das Variáveis de Ambiente
+Sistema de Gerenciamento de Mosaicos desenvolvido com Electron e React, com sistema de atualização automática integrado ao GitHub.
 
-Para que a aplicação funcione corretamente, você precisa criar um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+## 🚀 Funcionalidades
 
-### 1. Crie o arquivo `.env`
+- ✅ **Interface moderna** com React e Tailwind CSS
+- ✅ **Sistema de atualização automática** via GitHub Releases
+- ✅ **Multi-plataforma** (Windows, macOS, Linux)
+- ✅ **Sistema de logs** para debugging
+- ✅ **Internacionalização** (i18n) com suporte a múltiplos idiomas
+- ✅ **Auto-updater** com notificações visuais
 
-Na raiz do projeto, crie um arquivo chamado `.env` com o seguinte conteúdo:
+## 📋 Pré-requisitos
 
+- **Node.js** 18+ 
+- **npm** ou **yarn**
+- **GitHub Personal Access Token** (para auto-updater)
+- **Repositório GitHub** configurado
+
+## 🛠️ Instalação
+
+### 1. Clone o repositório
+```bash
+git clone https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+cd SEU_REPOSITORIO
+```
+
+### 2. Instale as dependências
+```bash
+npm install
+```
+
+### 3. Configure as variáveis de ambiente
+Crie um arquivo `.env` na raiz do projeto:
 ```bash
 # Configurações da API
 VITE_BASE_URL=http://localhost:3000/api
@@ -18,63 +43,260 @@ VITE_ENVIRONMENT=development
 # Configurações de debug
 VITE_DEBUG=true
 VITE_LOG_LEVEL=info
+
+# GitHub Personal Access Token para electron-builder
+GH_TOKEN=seu_token_github_aqui
+
+# Outras variáveis de ambiente podem ser adicionadas aqui
+# VITE_API_KEY=sua_chave_aqui
+# VITE_WS_URL=ws://localhost:3000
 ```
 
-### 2. Configurações Disponíveis
+## ⚙️ Configuração
 
-- **VITE_BASE_URL**: URL base da API (obrigatório)
-- **VITE_ENVIRONMENT**: Ambiente da aplicação (development, staging, production)
-- **VITE_DEBUG**: Habilita logs de debug (true/false)
-- **VITE_LOG_LEVEL**: Nível de log (info, warn, error, debug)
+### 1. Configurar GitHub Personal Access Token
 
-### 3. Exemplo de Configuração para Produção
+1. Vá para [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
+2. Clique em "Generate new token (classic)"
+3. Dê um nome como "TLM Mosaico Electron Builder"
+4. Selecione os escopos:
+   - `repo` (para repositórios privados)
+   - `public_repo` (para repositórios públicos)
+5. Clique em "Generate token"
+6. **Copie o token** e cole no arquivo `.env`
 
-```bash
-VITE_BASE_URL=https://api.seudominio.com/api
-VITE_ENVIRONMENT=production
-VITE_DEBUG=false
-VITE_LOG_LEVEL=error
+### 2. Configurar Repositório GitHub
+
+Edite `src/background/updater-config.js`:
+```javascript
+module.exports = {
+  github: {
+    owner: 'SEU_USUARIO_GITHUB',
+    repo: 'SEU_REPOSITORIO',
+    private: false, // true se for privado
+  },
+  // ... outras configurações
+};
 ```
 
-### 4. Reiniciar a Aplicação
+### 3. Configurar package.json
 
-Após criar o arquivo `.env`, reinicie a aplicação para que as variáveis sejam carregadas:
+Verifique se o `package.json` tem as configurações corretas:
+```json
+{
+  "build": {
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "SEU_USUARIO_GITHUB",
+        "repo": "SEU_REPOSITORIO",
+        "private": false,
+        "releaseType": "release",
+        "vPrefixedTagName": true,
+        "publishAutoUpdate": true
+      }
+    ]
+  }
+}
+```
 
+## 🚀 Como Executar
+
+### Desenvolvimento
 ```bash
+# Iniciar em modo desenvolvimento
 npm start
+
+# Iniciar com debug
+npm run start:debug
+
+# Iniciar com debug e breakpoint
+npm run start:debug-brk
 ```
 
-## Estrutura do Projeto
+### Build e Distribuição
+```bash
+# Build do projeto
+npm run build
 
-O projeto está configurado para usar:
-- **Electron** como framework desktop
-- **React** para a interface
-- **Webpack** para bundling
-- **Axios** para requisições HTTP
-- **Tailwind CSS** para estilização
+# Build e distribuição
+npm run dist
 
-## Desenvolvimento
+# Build específico para Windows
+npm run dist:win
+
+# Build para Windows (sem instalar)
+npm run dist:win-unpacked
+
+# Publicar no GitHub
+npm run publish:github
+```
+
+## 🔄 Sistema de Auto-Updater
+
+### Como Funciona
+
+1. **Verificação automática**: A cada 4 horas
+2. **Notificações visuais**: Interface intuitiva para o usuário
+3. **Download manual**: Usuário controla quando baixar
+4. **Instalação automática**: Após download, instala automaticamente
+
+### Scripts de Atualização
 
 ```bash
-# Instalar dependências
-npm install
+# Correção de bug (1.0.5 → 1.0.6)
+npm run update:patch
 
-# Executar em modo desenvolvimento
-npm start
+# Nova funcionalidade (1.0.5 → 1.1.0)
+npm run update:minor
 
-# Build para produção
-npm run package
+# Breaking changes (1.0.5 → 2.0.0)
+npm run update:major
+
+# Com mensagem personalizada
+npm run update:minor -- --message "Nova funcionalidade de exportação"
+
+# Verificar atualizações
+npm run check-updates
 ```
 
-## Solução de Problemas
+### Fluxo de Publicação
 
-Se você encontrar o erro `Cannot read properties of undefined (reading 'VITE_BASE_URL')`, verifique se:
+1. **Desenvolver** novas funcionalidades
+2. **Testar** localmente
+3. **Executar** script de atualização (patch/minor/major)
+4. **Verificar** se o release foi criado no GitHub
+5. **Usuários recebem** notificação de atualização
 
-1. O arquivo `.env` existe na raiz do projeto
-2. A variável `VITE_BASE_URL` está definida no arquivo
-3. A aplicação foi reiniciada após criar o arquivo
-4. O arquivo `.env` não tem espaços extras ou caracteres especiais
+## 🏗️ Estrutura do Projeto
 
-## Nota Importante
+```
+src/
+├── api/                    # APIs e serviços
+├── assets/                 # Imagens e recursos estáticos
+├── background/             # Processos principais do Electron
+│   ├── updater.js         # Sistema de auto-updater
+│   ├── updater-config.js  # Configurações do updater
+│   └── watcher.js         # Sistema de monitoramento
+├── components/             # Componentes React reutilizáveis
+│   └── ui/
+│       └── UpdateNotification.jsx  # Notificação de atualização
+├── config/                 # Configurações da aplicação
+├── context/                # Contextos React
+├── screens/                # Telas principais da aplicação
+├── utils/                  # Utilitários e helpers
+└── validations/            # Validações de dados
 
-O arquivo `.env` está no `.gitignore` por segurança, então não será commitado no repositório. Cada desenvolvedor deve criar seu próprio arquivo `.env` baseado no `env.example`.
+scripts/
+└── publish-update.js       # Script de publicação automatizada
+
+build-output/               # Arquivos de build (não commitado)
+dist/                       # Arquivos compilados (não commitado)
+```
+
+## 🔧 Scripts Disponíveis
+
+| Script | Descrição |
+|--------|-----------|
+| `start` | Inicia a aplicação em modo desenvolvimento |
+| `start:debug` | Inicia com debug habilitado |
+| `start:debug-brk` | Inicia com breakpoint para debug |
+| `build` | Compila o projeto com webpack |
+| `dist` | Build e distribuição completa |
+| `dist:win` | Build específico para Windows |
+| `dist:win-unpacked` | Build Windows sem instalador |
+| `publish` | Build e publicação automática |
+| `publish:github` | Build e publicação no GitHub |
+| `update:patch` | Incrementa versão patch |
+| `update:minor` | Incrementa versão minor |
+| `update:major` | Incrementa versão major |
+| `check-updates` | Verifica atualizações disponíveis |
+
+## 🐛 Debug e Troubleshooting
+
+### Logs da Aplicação
+
+Os logs são salvos em:
+- **Windows**: `%APPDATA%/tlm-mosaico/logs/`
+- **macOS**: `~/Library/Application Support/tlm-mosaico/logs/`
+- **Linux**: `~/.config/tlm-mosaico/logs/`
+
+### Verificar Status do Auto-Updater
+
+No console da aplicação:
+```javascript
+// Verificar status
+window.electronAPI.invoke('updater:get-status');
+
+// Verificar atualizações
+window.electronAPI.invoke('updater:check-for-updates');
+
+// Obter logs
+window.electronAPI.invoke('updater:get-logs');
+```
+
+### Problemas Comuns
+
+#### 1. Erro de Token GitHub
+```
+Error: GitHub Personal Access Token is not set
+```
+**Solução**: Configure o `GH_TOKEN` no arquivo `.env`
+
+#### 2. Atualização não detectada
+**Solução**: 
+- Verifique se a versão foi incrementada no `package.json`
+- Confirme se o release foi publicado no GitHub
+- Verifique se os arquivos foram empacotados corretamente
+
+#### 3. Erro de conexão
+**Solução**:
+- Verifique conexão com internet
+- Confirme se o repositório GitHub está acessível
+- Verifique configurações de firewall/proxy
+
+## 📱 Interface do Usuário
+
+### Notificações de Atualização
+
+- **Posição**: Canto superior direito
+- **Estados**: Disponível, Baixando, Pronto para instalar, Erro
+- **Ações**: Baixar, Instalar, Fechar, Tentar novamente
+
+### Barra de Progresso
+
+- Mostra progresso durante download
+- Atualização em tempo real
+- Indicador visual claro
+
+## 🤝 Contribuição
+
+1. **Fork** o repositório
+2. **Crie** uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. **Commit** suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** para a branch (`git push origin feature/AmazingFeature`)
+5. **Abra** um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+
+## 🆘 Suporte
+
+- **Issues**: [GitHub Issues](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/issues)
+- **Documentação**: Este README
+- **Email**: mosaico@tlm.com.br
+
+## 🔗 Links Úteis
+
+- [Electron Documentation](https://www.electronjs.org/docs)
+- [Electron Builder](https://www.electron.build/)
+- [Electron Updater](https://www.electron.build/auto-update)
+- [React Documentation](https://reactjs.org/docs)
+- [Tailwind CSS](https://tailwindcss.com/docs)
+
+---
+
+**Desenvolvido com ❤️ para TLM Mosaico**
+
+*Versão atual: 1.0.19*
