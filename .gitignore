@@ -93,8 +93,11 @@ out/
 
 # Build outputs
 dist/
-build/
 build-output/
+
+# Build directory (permitir entitlements)
+build/*
+!build/entitlements.mac.plist
 
 # Electron build artifacts
 *.exe

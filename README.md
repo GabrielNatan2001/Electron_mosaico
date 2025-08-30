@@ -13,10 +13,27 @@ Sistema de Gerenciamento de Mosaicos desenvolvido com Electron e React, com sist
 
 ## 📋 Pré-requisitos
 
+### Geral
 - **Node.js** 18+ 
 - **npm** ou **yarn**
 - **GitHub Personal Access Token** (para auto-updater)
 - **Repositório GitHub** configurado
+
+### Por Plataforma
+
+#### Windows
+- **Windows 10/11** (64-bit)
+- **Visual Studio Build Tools** (para dependências nativas)
+
+#### macOS
+- **macOS 10.15+** (Catalina ou superior)
+- **Xcode Command Line Tools** (`xcode-select --install`)
+- **Code signing** (recomendado para distribuição)
+
+#### Linux
+- **Ubuntu 18.04+** ou **CentOS 7+**
+- **Build essentials**: `sudo apt-get install build-essential`
+- **Python 2.7** (para algumas dependências)
 
 ## 🛠️ Instalação
 
@@ -79,7 +96,34 @@ module.exports = {
 };
 ```
 
-### 3. Configurar package.json
+### 3. Code Signing (macOS - Opcional)
+
+Para distribuição oficial no macOS, configure o code signing:
+
+1. **Obtenha um Developer ID** da Apple Developer Program
+2. **Configure as variáveis de ambiente**:
+```bash
+# No arquivo .env
+CSC_LINK=path/to/your/certificate.p12
+CSC_KEY_PASSWORD=sua_senha_aqui
+APPLE_ID=seu_apple_id@email.com
+APPLE_ID_PASS=sua_app_specific_password
+```
+
+3. **Ou configure no package.json**:
+```json
+{
+  "build": {
+    "mac": {
+      "identity": "Developer ID Application: Seu Nome (TEAM_ID)"
+    }
+  }
+}
+```
+
+**Nota**: Use o arquivo `env.macos.example` como referência para todas as variáveis específicas do macOS.
+
+### 4. Configurar package.json
 
 Verifique se o `package.json` tem as configurações corretas:
 ```json
@@ -115,21 +159,62 @@ npm run start:debug-brk
 ```
 
 ### Build e Distribuição
+
+#### Build para Windows
+```bash
+# Build específico para Windows
+npm run dist:win
+
+# Build para Windows (sem instalador)
+npm run dist:win-unpacked
+```
+
+#### Build para macOS
+```bash
+# Build específico para macOS (Intel + Apple Silicon)
+npm run dist:mac
+
+# Build para macOS (sem instalador)
+npm run dist:mac-unpacked
+```
+
+#### Build para Linux
+```bash
+# Build específico para Linux
+npm run dist:linux
+
+# Build para Linux (sem instalador)
+npm run dist:linux-unpacked
+```
+
+#### Build para Todas as Plataformas
+
+**⚠️ Importante**: O `electron-builder` só consegue fazer build para a plataforma atual:
+- **Windows** → Só build para Windows
+- **macOS** → Só build para macOS  
+- **Linux** → Só build para Linux
+
+```bash
+# Build para todas as plataformas (requer GitHub Actions)
+npm run dist:all
+
+# Publicar no GitHub (todas as plataformas)
+npm run publish:github
+```
+
+**💡 Soluções Disponíveis**:
+
+1. **GitHub Actions** (Recomendado) - Automático e gratuito
+2. **Docker** - Local com containers
+3. **WSL** - Windows Subsystem for Linux
+
+#### Build Geral
 ```bash
 # Build do projeto
 npm run build
 
-# Build e distribuição
+# Build e distribuição (plataforma atual)
 npm run dist
-
-# Build específico para Windows
-npm run dist:win
-
-# Build para Windows (sem instalar)
-npm run dist:win-unpacked
-
-# Publicar no GitHub
-npm run publish:github
 ```
 
 ## 🔄 Sistema de Auto-Updater
@@ -140,6 +225,78 @@ npm run publish:github
 2. **Notificações visuais**: Interface intuitiva para o usuário
 3. **Download manual**: Usuário controla quando baixar
 4. **Instalação automática**: Após download, instala automaticamente
+
+## 🚀 Build Multiplataforma
+
+### 1. GitHub Actions (Recomendado)
+
+O **GitHub Actions** executa builds em paralelo em diferentes sistemas operacionais:
+- **Windows** → Build para Windows
+- **macOS** → Build para macOS  
+- **Linux** → Build para Linux
+
+#### Configuração
+
+1. **Configure os secrets** no seu repositório GitHub:
+   - `GH_TOKEN` → Seu GitHub Personal Access Token
+   - `VITE_BASE_URL` → URL da sua API
+
+2. **O workflow é executado automaticamente** quando você:
+   - Cria uma tag (ex: `v1.0.20`)
+   - Executa manualmente via GitHub Actions
+
+#### Uso
+
+```bash
+# 1. Crie uma tag para nova versão
+git tag v1.0.20
+git push origin v1.0.20
+
+# 2. O GitHub Actions fará build automático para todas as plataformas
+# 3. Um release será criado com os arquivos de todas as plataformas
+```
+
+### 2. Docker (Local)
+
+Use containers Docker para simular diferentes sistemas operacionais:
+
+#### Pré-requisitos
+- **Docker Desktop** instalado
+- **Docker Compose** disponível
+
+#### Uso
+```bash
+# Build para todas as plataformas com Docker
+npm run build:docker
+
+# Ou execute diretamente
+node scripts/build-multi-platform.js
+```
+
+### 3. WSL (Windows Subsystem for Linux)
+
+Use WSL para builds Linux e simular macOS:
+
+#### Pré-requisitos
+- **WSL2** habilitado
+- **Ubuntu** instalado no WSL
+
+#### Uso
+```bash
+# Build multiplataforma com WSL
+npm run build:wsl
+
+# Ou execute diretamente
+node scripts/build-wsl.js
+```
+
+### 4. Comparação das Soluções
+
+| Solução | Prós | Contras | Tempo |
+|---------|------|---------|-------|
+| **GitHub Actions** | ✅ Gratuito, automático, confiável | ❌ Requer internet, não local | ~15-30 min |
+| **Docker** | ✅ Local, rápido, isolado | ❌ Requer Docker, mais complexo | ~10-20 min |
+| **WSL** | ✅ Local, simples, nativo | ❌ Só Linux funciona bem | ~5-15 min |
 
 ### Scripts de Atualização
 
@@ -205,12 +362,19 @@ dist/                       # Arquivos compilados (não commitado)
 | `dist` | Build e distribuição completa |
 | `dist:win` | Build específico para Windows |
 | `dist:win-unpacked` | Build Windows sem instalador |
+| `dist:mac` | Build específico para macOS |
+| `dist:mac-unpacked` | Build macOS sem instalador |
+| `dist:linux` | Build específico para Linux |
+| `dist:linux-unpacked` | Build Linux sem instalador |
+| `dist:all` | Build para todas as plataformas (GitHub Actions) |
 | `publish` | Build e publicação automática |
-| `publish:github` | Build e publicação no GitHub |
+| `publish:github` | Build e publicação no GitHub (GitHub Actions) |
 | `update:patch` | Incrementa versão patch |
 | `update:minor` | Incrementa versão minor |
 | `update:major` | Incrementa versão major |
 | `check-updates` | Verifica atualizações disponíveis |
+| `build:docker` | Build multiplataforma com Docker |
+| `build:wsl` | Build multiplataforma com WSL |
 
 ## 🐛 Debug e Troubleshooting
 
@@ -254,6 +418,17 @@ Error: GitHub Personal Access Token is not set
 - Verifique conexão com internet
 - Confirme se o repositório GitHub está acessível
 - Verifique configurações de firewall/proxy
+
+#### 4. Build multiplataforma não funciona
+```
+Build for macOS is supported only on macOS
+Build for Linux is supported only on Linux
+```
+**Solução**: 
+- **Windows**: Use apenas `npm run dist:win`
+- **macOS**: Use apenas `npm run dist:mac`
+- **Linux**: Use apenas `npm run dist:linux`
+- **Para todas as plataformas**: Use GitHub Actions com `git tag v1.0.20`
 
 ## 📱 Interface do Usuário
 

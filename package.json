@@ -13,12 +13,20 @@
     "dist": "npm run build && electron-builder",
     "dist:win": "npm run build && electron-builder --win",
     "dist:win-unpacked": "npm run build && electron-builder --win --dir",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:mac-unpacked": "npm run build && electron-builder --mac --dir",
+    "dist:linux": "npm run build && electron-builder --linux",
+    "dist:linux-unpacked": "npm run build && electron-builder --linux --dir",
+    "dist:all": "npm run build && electron-builder --win --mac --linux",
     "publish": "npm run build && electron-builder --publish=always",
-    "publish:github": "npm run build && electron-builder --publish=always --win",
+    "publish:github": "npm run build && electron-builder --publish=always --win --mac --linux",
     "update:patch": "node scripts/publish-update.js patch",
     "update:minor": "node scripts/publish-update.js minor",
     "update:major": "node scripts/publish-update.js major",
-    "check-updates": "node scripts/publish-update.js check"
+    "check-updates": "node scripts/publish-update.js check",
+    "build:docker": "node scripts/build-multi-platform.js",
+    "build:docker-fixed": "node scripts/build-docker-fixed.js",
+    "build:wsl": "node scripts/build-wsl.js"
   },
   "keywords": [],
   "author": {
@@ -56,8 +64,40 @@
           ]
         }
       ],
-
       "requestedExecutionLevel": "asInvoker"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility"
     },
     "nsis": {
       "oneClick": false,
